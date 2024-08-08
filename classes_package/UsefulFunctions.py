@@ -6,6 +6,7 @@ def get_center(width:int, height:int) -> tuple:
 def cross_product(v1, v2):
     return v1[0] * v2[1] - v1[1] * v2[0]
 
+    
 def is_point_in_rhombus(rhombus_points, point) -> bool:
 
     A, B, C, D = rhombus_points

@@ -1,10 +1,10 @@
 import pygame as pg
 from pygame.locals import *
 
-import globals
 from global_constants import *
 from .UsefulFunctions import *
 # from .MapClass import Map
+import globals
 
 PLAYER_WIDTH = 50
 PLAYER_HEIGTH = 100
@@ -74,7 +74,7 @@ class Player(pg.sprite.Sprite):
         # This needs to change when I implement elevations
         if not self.isJumping:
             self.shadow_y = self.rect.bottom
-        self.shadow_dot = (globals.player.sprite.rect.centerx, self.shadow_y)
+        self.shadow_dot = (self.rect.centerx, self.shadow_y)
 
     def update_dt(self):
         self.dt = globals.dt
