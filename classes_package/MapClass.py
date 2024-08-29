@@ -11,23 +11,50 @@ PLAYER_SHADOW_WIDTH = 75
 PLAYER_SHADOW_HEIGHT = 30
 PLAYER_SHADOW_ALPHA = 100
 
+COLORKEY = (255, 255, 255)
+
 MAP_STARTING_POS = (600, 340)
-TILE_X_OFFSET = 76
-TILE_Y_OFFSET = 30
+# TILE_X_OFFSET = 76
+# TILE_Y_OFFSET = 30
+MAP_STARTING_POS = (0, 0)
+TILE_X_OFFSET = 100
+TILE_Y_OFFSET = 100
 TILE_ELEVATION_Y_OFFSET = 76
 BIRDS_EYE_SCALE_DOWN_MULT = 5
+
+
+# file_map = 'map.txt'
+# file_cube = 'graphics/cube_testblock.png'
+# file_cube_highlight = 'graphics/cube_highlighted_testblock.png'
+file_map = 'ortho_map.txt'
+file_cube = 'graphics/ortho_block.png'
+file_cube_highlight = 'graphics/ortho_block_highlighted.png'
+
+GENERIC_FLOOR_COLOR = (153, 217, 234)
+GENERIC_WALL_COLOR = (195, 195, 195)
 
 
 class Map():
     def __init__(self):
         self.player = globals.player
 
-        self.cube = pg.image.load('graphics/cube_testblock.png').convert_alpha()
-        self.highlight_cube = pg.image.load('graphics/cube_highlighted_testblock.png').convert_alpha()
-        self.cube.set_colorkey((255,255,255))
-        self.highlight_cube.set_colorkey((255,255,255))
+        self.cube = pg.image.load(file_cube).convert_alpha()
+        self.highlight_cube = pg.image.load(file_cube_highlight).convert_alpha()
+        self.cube.set_colorkey(COLORKEY)
+        self.highlight_cube.set_colorkey(COLORKEY)
         self.tile_width = self.cube.get_width()
         self.tile_height = self.cube.get_height()
+
+        self.cubes = []
+        for i in range(5):
+            cube = self.cube.copy()
+            pixels = pg.PixelArray(cube)
+            pixels.replace(pg.Color(*GENERIC_FLOOR_COLOR), pg.Color(0, 0, 50 * (i+1)))
+            pixels.replace(pg.Color(*GENERIC_WALL_COLOR), pg.Color(50 * (i+1), 50 * (i+1), 50 * (i+1)))
+            del pixels
+
+            self.cubes.append(cube)
+
 
         self.font = pg.font.Font(None, 25)
 
@@ -35,7 +62,7 @@ class Map():
         def create_map_data():
             map_data = {}
 
-            f = open('map.txt')
+            f = open(file_map)
 
             curr_layer = None
             for row in f.read().split('\n'):
@@ -67,6 +94,7 @@ class Map():
         self.curr_row = 0
         self.curr_col = 0
         self.wait_on = False
+        # self.wait_on = True
 
     def blit_debug(self):
         keys = pg.key.get_pressed()
@@ -100,21 +128,32 @@ class Map():
         for layer, key in enumerate(self.map_data.keys()):
             for y, row in enumerate(self.map_data[key]):
                 for x, tile in enumerate(row):
-                    if tile:
-                        rect = self.cube.get_frect(topleft=(MAP_STARTING_POS[0] + x*TILE_X_OFFSET - TILE_Y_OFFSET*y, MAP_STARTING_POS[1] + y*TILE_Y_OFFSET - layer*TILE_X_OFFSET))
+                    if not tile: continue
 
-                        # Highlight the tile the player is on
-                        if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + 32: screen.blit(self.highlight_cube, rect)
-                        else: screen.blit(self.cube, rect)
+                    rect = self.cube.get_frect(topleft=(
+                        # MAP_STARTING_POS[0] + x*TILE_X_OFFSET - y*TILE_Y_OFFSET,
+                        # MAP_STARTING_POS[1] + y*TILE_Y_OFFSET - layer*TILE_X_OFFSET
+                        MAP_STARTING_POS[0] + x*TILE_X_OFFSET,
+                        MAP_STARTING_POS[1] + y*TILE_Y_OFFSET - layer*TILE_Y_OFFSET,
+                    ))
 
-                        if self.wait_on:
-                            pg.time.wait(200)
-                            pg.display.update()
+                    # Highlight the tile the player is on
+                    screen.blit(
+                        # self.highlight_cube if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + 32 else self.cube,
+                        self.highlight_cube if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + self.tile_width else self.cubes[layer],
+                        rect
+                    )
 
-                        # Draw Player at the correct time
-                        if self.curr_row == y and self.curr_col == x:
-                            globals.map.blit_player_shadow()
-                            globals.player.draw(screen)
+                    if self.wait_on:
+                        # pg.time.wait(200)
+                        pg.time.wait(0)
+                        pg.display.update()
+
+                    # Draw Player at the correct time
+                    if self.curr_row == y and self.curr_col == x:
+                    # if True:
+                        # globals.map.blit_player_shadow()
+                        globals.player.draw(screen)
 
 
 
@@ -156,11 +195,11 @@ class Map():
         self.curr_row = int((self.player.sprite.shadow_y - MAP_STARTING_POS[1] + (TILE_X_OFFSET*self.curr_layer) )/TILE_Y_OFFSET)
         pg.draw.circle(screen, 'yellow', (x_offset_center*width + 20 + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + 20), 2)
 
-    def blit_player_shadow(self):
-        curr_jump_height = 1 - (self.player.sprite.shadow_y - self.player.sprite.rect.bottom)/100
-        if curr_jump_height <= 0: curr_jump_height = 0
+    # def blit_player_shadow(self):
+    #     curr_jump_height = 1 - (self.player.sprite.shadow_y - self.player.sprite.rect.bottom)/100
+    #     if curr_jump_height <= 0: curr_jump_height = 0
 
-        player_shadow_surf = pg.Surface((PLAYER_SHADOW_WIDTH*curr_jump_height, PLAYER_SHADOW_HEIGHT*curr_jump_height), pg.SRCALPHA)
-        pg.draw.ellipse(player_shadow_surf, (0,0,0), player_shadow_surf.get_frect(topleft=(0,0)))
-        player_shadow_surf.set_alpha(PLAYER_SHADOW_ALPHA)
-        screen.blit(player_shadow_surf, player_shadow_surf.get_frect(center=(self.player.sprite.rect.centerx, self.player.sprite.shadow_y)))
+    #     player_shadow_surf = pg.Surface((PLAYER_SHADOW_WIDTH*curr_jump_height, PLAYER_SHADOW_HEIGHT*curr_jump_height), pg.SRCALPHA)
+    #     pg.draw.ellipse(player_shadow_surf, (0,0,0), player_shadow_surf.get_frect(topleft=(0,0)))
+    #     player_shadow_surf.set_alpha(PLAYER_SHADOW_ALPHA)
+    #     screen.blit(player_shadow_surf, player_shadow_surf.get_frect(center=(self.player.sprite.rect.centerx, self.player.sprite.shadow_y)))

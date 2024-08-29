@@ -7,8 +7,8 @@ from .UsefulFunctions import *
 # from .MapClass import Map
 
 PLAYER_WIDTH = 50
-PLAYER_HEIGTH = 100
-PLAYER_SIZE = (PLAYER_WIDTH, PLAYER_HEIGTH)
+PLAYER_HEIGHT = 100
+PLAYER_SIZE = (PLAYER_WIDTH, PLAYER_HEIGHT)
 PLAYER_MVMT_SPD = 150
 PLAYER_JUMP_SPD = -15
 PLAYER_GRAVITY_SPD = 1
@@ -55,7 +55,8 @@ class Player(pg.sprite.Sprite):
     def jumping(self):
         keys = pg.key.get_pressed()
 
-        pg.draw.circle(screen, 'yellow', self.shadow_dot, 3)
+        # pg.draw.circle(screen, 'yellow', self.shadow_dot, 3)
+        pg.draw.circle(screen, 'green', self.shadow_dot, 3)
 
         if not self.isJumping and keys[K_SPACE]:
             self.isJumping = True
