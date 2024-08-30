@@ -17,8 +17,8 @@ MAP_STARTING_POS = (600, 340)
 # TILE_X_OFFSET = 76
 # TILE_Y_OFFSET = 30
 MAP_STARTING_POS = (0, 0)
-TILE_X_OFFSET = 100
-TILE_Y_OFFSET = 100
+TILE_X_OFFSET = 50
+TILE_Y_OFFSET = 50
 TILE_ELEVATION_Y_OFFSET = 76
 BIRDS_EYE_SCALE_DOWN_MULT = 5
 
@@ -27,36 +27,28 @@ BIRDS_EYE_SCALE_DOWN_MULT = 5
 # file_cube = 'graphics/cube_testblock.png'
 # file_cube_highlight = 'graphics/cube_highlighted_testblock.png'
 file_map = 'ortho_map.txt'
-file_cube = 'graphics/ortho_block.png'
-file_cube_highlight = 'graphics/ortho_block_highlighted.png'
+file_cube = 'graphics/ortho_cube.png'
+file_half_7 = 'graphics/ortho_half_7.png'
+file_half_F = 'graphics/ortho_half_F.png'
+file_half_J = 'graphics/ortho_half_J.png'
+file_half_L = 'graphics/ortho_half_L.png'
 
 GENERIC_FLOOR_COLOR = (153, 217, 234)
 GENERIC_WALL_COLOR = (195, 195, 195)
+ALMOST_WHITE = (254, 254, 254)
+YELLOW = (255, 242, 0)
 
+TILE_TYPES = {
+    "1": cube,
+    "7": half_7,
+    "F": half_F,
+    "J": half_J,
+    "L": half_L,
+}
 
 class Map():
     def __init__(self):
         self.player = globals.player
-
-        self.cube = pg.image.load(file_cube).convert_alpha()
-        self.highlight_cube = pg.image.load(file_cube_highlight).convert_alpha()
-        self.cube.set_colorkey(COLORKEY)
-        self.highlight_cube.set_colorkey(COLORKEY)
-        self.tile_width = self.cube.get_width()
-        self.tile_height = self.cube.get_height()
-
-        self.cubes = []
-        for i in range(5):
-            cube = self.cube.copy()
-            pixels = pg.PixelArray(cube)
-            pixels.replace(pg.Color(*GENERIC_FLOOR_COLOR), pg.Color(0, 0, 50 * (i+1)))
-            pixels.replace(pg.Color(*GENERIC_WALL_COLOR), pg.Color(50 * (i+1), 50 * (i+1), 50 * (i+1)))
-            del pixels
-
-            self.cubes.append(cube)
-
-
-        self.font = pg.font.Font(None, 25)
 
         self.map_data = {}
         def create_map_data():
@@ -70,7 +62,8 @@ class Map():
                     curr_layer = row
                     map_data[curr_layer] = []
                 elif row:
-                    map_data[curr_layer].append([int(c) for c in row])
+                    # map_data[curr_layer].append([int(c) for c in row])
+                    map_data[curr_layer].append(row)
 
             # Alternate method of reading, By Stan
             # for layer_str in f.read().split('\n\n'):
@@ -83,11 +76,86 @@ class Map():
             f.close()
             return map_data
         self.map_data = create_map_data()
+        # print(self.map_data)
 
         # Print map_data
         # for key in self.map_data.keys():
         #     for row in self.map_data[key]:
         #         print(f'{key}: {row}')
+
+        self.cube = pg.image.load(file_cube).convert_alpha()
+        self.cube.set_colorkey(COLORKEY)
+        self.half_7 = pg.image.load(file_half_7).convert_alpha()
+        self.half_7.set_colorkey(COLORKEY)
+        self.half_F = pg.image.load(file_half_F).convert_alpha()
+        self.half_F.set_colorkey(COLORKEY)
+        self.half_J = pg.image.load(file_half_J).convert_alpha()
+        self.half_J.set_colorkey(COLORKEY)
+        self.half_L = pg.image.load(file_half_L).convert_alpha()
+        self.half_L.set_colorkey(COLORKEY)
+
+        self.tile_width = self.cube.get_width()
+        self.tile_height = self.cube.get_height()
+
+        self.tiles = []
+        num_layers = len(self.map_data)
+        rgb_multiplier = 256 // num_layers
+        # print(num_layers)
+        # print(rgb_multiplier)
+        for i in range(num_layers):
+            
+            tile_cube = self.cube.copy()
+            tile_half_7 = self.half_7.copy()
+            tile_half_F = self.half_F.copy()
+            tile_half_J = self.half_J.copy()
+            tile_half_L = self.half_L.copy()
+
+            for tile in [
+                tile_cube,
+                tile_half_7,
+                tile_half_F,
+                tile_half_J,
+                tile_half_L,
+            ]:
+                pixels = pg.PixelArray(tile)
+                pixels.replace(pg.Color(*GENERIC_FLOOR_COLOR), pg.Color(0, 0, rgb_multiplier * (i+1) - 1))
+                pixels.replace(pg.Color(*GENERIC_WALL_COLOR), pg.Color(rgb_multiplier * (i+1) - 1, rgb_multiplier * (i+1) - 1, rgb_multiplier * (i+1) - 1))
+
+            # self.tiles.append(cube)
+            self.tiles.append({
+                cube: tile_cube,
+                half_7: tile_half_7,
+                half_F: tile_half_F,
+                half_J: tile_half_J,
+                half_L: tile_half_L,
+            })
+
+        tile_highlighted_cube = self.cube.copy()
+        tile_highlighted_half_7 = self.half_7.copy()
+        tile_highlighted_half_F = self.half_F.copy()
+        tile_highlighted_half_J = self.half_J.copy()
+        tile_highlighted_half_L = self.half_L.copy()
+
+        for tile in [
+            tile_highlighted_cube,
+            tile_highlighted_half_7,
+            tile_highlighted_half_F,
+            tile_highlighted_half_J,
+            tile_highlighted_half_L,
+        ]:
+            pixels = pg.PixelArray(tile)
+            pixels.replace(pg.Color(*GENERIC_FLOOR_COLOR), pg.Color(*YELLOW))
+            pixels.replace(pg.Color(*GENERIC_WALL_COLOR), pg.Color(*ALMOST_WHITE))
+
+        self.highlighted_tiles = {
+            cube: tile_highlighted_cube,
+            half_7: tile_highlighted_half_7,
+            half_F: tile_highlighted_half_F,
+            half_J: tile_highlighted_half_J,
+            half_L: tile_highlighted_half_L,
+        }
+
+        self.font = pg.font.Font(None, 25)
 
         # Debug Variables
         self.curr_layer = 0
@@ -128,7 +196,10 @@ class Map():
         for layer, key in enumerate(self.map_data.keys()):
             for y, row in enumerate(self.map_data[key]):
                 for x, tile in enumerate(row):
-                    if not tile: continue
+                    # if not tile: continue
+                    if tile == '.': continue
+
+                    tile_type = TILE_TYPES[tile]
 
                     rect = self.cube.get_frect(topleft=(
                         # MAP_STARTING_POS[0] + x*TILE_X_OFFSET - y*TILE_Y_OFFSET,
@@ -140,7 +211,8 @@ class Map():
                     # Highlight the tile the player is on
                     screen.blit(
                         # self.highlight_cube if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + 32 else self.cube,
-                        self.highlight_cube if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + self.tile_width else self.cubes[layer],
+                        # self.highlight_cube if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + self.tile_width else self.tiles[layer],
+                        self.highlighted_tiles[tile_type] if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + self.tile_width else self.tiles[layer][tile_type],
                         rect
                     )
 
