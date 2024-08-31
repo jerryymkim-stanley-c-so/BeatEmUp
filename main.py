@@ -26,6 +26,7 @@ while True:
             elif event.key == K_p: globals.map.wait_on = not globals.map.wait_on
 
     screen.fill("black")
+    globals.map.update()
     globals.map.blit_map()
     # globals.map.blit_player_shadow()
     # globals.map.draw_birds_eye_view()
