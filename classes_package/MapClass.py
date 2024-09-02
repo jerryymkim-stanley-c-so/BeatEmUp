@@ -123,74 +123,46 @@ class Map():
         self.tile_width = self.cube.get_width()
         self.tile_height = self.cube.get_height()
 
+        def create_color_swapped_tile_from_template(template, old_floor_color, new_floor_color, old_wall_color, new_wall_color):
+            tile = template.copy()
+            pixels = pg.PixelArray(tile)
+            pixels.replace(pg.Color(*old_floor_color), pg.Color(*new_floor_color))
+            pixels.replace(pg.Color(*old_wall_color), pg.Color(*new_wall_color))
+            return tile
+
         self.tiles = []
         rgb_multiplier = 256 // self.map_dimensions_height
-        # print(rgb_multiplier)
+
         for i in range(self.map_dimensions_height):
-            
-            tile_cube = self.cube.copy()
-            tile_half_7 = self.half_7.copy()
-            tile_half_F = self.half_F.copy()
-            tile_half_J = self.half_J.copy()
-            tile_half_L = self.half_L.copy()
-
-            for tile in [
-                tile_cube,
-                tile_half_7,
-                tile_half_F,
-                tile_half_J,
-                tile_half_L,
-            ]:
-                pixels = pg.PixelArray(tile)
-                pixels.replace(pg.Color(*GENERIC_FLOOR_COLOR), pg.Color(0, 0, rgb_multiplier * (i+1) - 1))
-                pixels.replace(pg.Color(*GENERIC_WALL_COLOR), pg.Color(rgb_multiplier * (i+1) - 1, rgb_multiplier * (i+1) - 1, rgb_multiplier * (i+1) - 1))
-
-            # self.tiles.append(cube)
+            rgb_shift = rgb_multiplier * (i+1) - 1
             self.tiles.append({
-                cube: tile_cube,
-                half_7: tile_half_7,
-                half_F: tile_half_F,
-                half_J: tile_half_J,
-                half_L: tile_half_L,
+                cube: create_color_swapped_tile_from_template(self.cube, GENERIC_FLOOR_COLOR, (0, 0, rgb_shift), GENERIC_WALL_COLOR, (rgb_shift, rgb_shift, rgb_shift)),
+                half_7: create_color_swapped_tile_from_template(self.half_7, GENERIC_FLOOR_COLOR, (0, 0, rgb_shift), GENERIC_WALL_COLOR, (rgb_shift, rgb_shift, rgb_shift)),
+                half_F: create_color_swapped_tile_from_template(self.half_F, GENERIC_FLOOR_COLOR, (0, 0, rgb_shift), GENERIC_WALL_COLOR, (rgb_shift, rgb_shift, rgb_shift)),
+                half_J: create_color_swapped_tile_from_template(self.half_J, GENERIC_FLOOR_COLOR, (0, 0, rgb_shift), GENERIC_WALL_COLOR, (rgb_shift, rgb_shift, rgb_shift)),
+                half_L: create_color_swapped_tile_from_template(self.half_L, GENERIC_FLOOR_COLOR, (0, 0, rgb_shift), GENERIC_WALL_COLOR, (rgb_shift, rgb_shift, rgb_shift)),
             })
 
-        tile_highlighted_cube = self.cube.copy()
-        tile_highlighted_half_7 = self.half_7.copy()
-        tile_highlighted_half_F = self.half_F.copy()
-        tile_highlighted_half_J = self.half_J.copy()
-        tile_highlighted_half_L = self.half_L.copy()
-
-        for tile in [
-            tile_highlighted_cube,
-            tile_highlighted_half_7,
-            tile_highlighted_half_F,
-            tile_highlighted_half_J,
-            tile_highlighted_half_L,
-        ]:
-            pixels = pg.PixelArray(tile)
-            pixels.replace(pg.Color(*GENERIC_FLOOR_COLOR), pg.Color(*YELLOW))
-            pixels.replace(pg.Color(*GENERIC_WALL_COLOR), pg.Color(*ALMOST_WHITE))
-
         self.highlighted_tiles = {
-            cube: tile_highlighted_cube,
-            half_7: tile_highlighted_half_7,
-            half_F: tile_highlighted_half_F,
-            half_J: tile_highlighted_half_J,
-            half_L: tile_highlighted_half_L,
+            cube: create_color_swapped_tile_from_template(self.cube, GENERIC_FLOOR_COLOR, YELLOW, GENERIC_WALL_COLOR, ALMOST_WHITE),
+            half_7: create_color_swapped_tile_from_template(self.half_7, GENERIC_FLOOR_COLOR, YELLOW, GENERIC_WALL_COLOR, ALMOST_WHITE),
+            half_F: create_color_swapped_tile_from_template(self.half_F, GENERIC_FLOOR_COLOR, YELLOW, GENERIC_WALL_COLOR, ALMOST_WHITE),
+            half_J: create_color_swapped_tile_from_template(self.half_J, GENERIC_FLOOR_COLOR, YELLOW, GENERIC_WALL_COLOR, ALMOST_WHITE),
+            half_L: create_color_swapped_tile_from_template(self.half_L, GENERIC_FLOOR_COLOR, YELLOW, GENERIC_WALL_COLOR, ALMOST_WHITE),
         }
 
         self.font = pg.font.Font(None, 25)
 
         # Debug Variables
-        # self.curr_layer = 0
-        self.curr_layer = 1
+        self.curr_layer = 0
+        # self.curr_layer = 2
         self.curr_row = 0
         self.curr_col = 0
         self.wait_on = False
         # self.wait_on = True
 
     def blit_debug(self):
-        keys = pg.key.get_pressed()
+        # keys = pg.key.get_pressed()
 
         # Show Current Row
         curr_row_surf = self.font.render(f'Current Row: {int(self.curr_row)}', None, (255,255,255))
