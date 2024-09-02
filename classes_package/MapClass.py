@@ -20,7 +20,8 @@ MAP_STARTING_POS = (0, 0)
 TILE_X_OFFSET = 50
 TILE_Y_OFFSET = 50
 TILE_ELEVATION_Y_OFFSET = 76
-BIRDS_EYE_SCALE_DOWN_MULT = 5
+BIRDS_EYE_SCALE_DOWN_MULT = 3
+BIRDS_EYE_STARTING_POS = (20, 20)
 
 
 # file_map = 'map.txt'
@@ -121,7 +122,8 @@ class Map():
         self.half_L.set_colorkey(COLORKEY)
 
         self.tile_width = self.cube.get_width()
-        self.tile_height = self.cube.get_height()
+        # self.tile_height = self.cube.get_height()
+        self.tile_height = self.tile_width # the height, for purposes of this variable, is equal to the width. (the true height of the image includes the thickness of the tile)
 
         def create_color_swapped_tile_from_template(template, old_floor_color, new_floor_color, old_wall_color, new_wall_color):
             tile = template.copy()
@@ -155,7 +157,7 @@ class Map():
 
         # Debug Variables
         self.curr_layer = 0
-        # self.curr_layer = 2
+        self.curr_layer = 1
         self.curr_row = 0
         self.curr_col = 0
         self.wait_on = False
@@ -249,37 +251,80 @@ class Map():
         # Everything is divided by TILE_X_OFFSET to enumerate which tile the player is on
         # For example, if the player is on the 0th tile in the x-direction, the x_offset should be somewhere between 0.00 -- 1.00
         # The same logic applies for the y_offset, however the 'self.curr_layer*TILE_X_OFFSET' accounts for how high the player is in elevation
-        x_offset_center = (self.player.sprite.rect.centerx - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
-        x_offset_left = (self.player.sprite.rect.left - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
-        x_offset_right = (self.player.sprite.rect.right - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
-        y_offset = (self.player.sprite.shadow_y - MAP_STARTING_POS[1] + self.curr_layer*TILE_X_OFFSET)/TILE_Y_OFFSET
+        # x_offset_center = (self.player.sprite.rect.centerx - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
+        # x_offset_left = (self.player.sprite.rect.left - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
+        # x_offset_right = (self.player.sprite.rect.right - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
+        # y_offset = (self.player.sprite.shadow_y - MAP_STARTING_POS[1] + self.curr_layer*TILE_X_OFFSET)/TILE_Y_OFFSET
+        x_offset_center = (self.player.sprite.rect.centerx - MAP_STARTING_POS[0])/TILE_X_OFFSET
+        x_offset_left = (self.player.sprite.rect.left - MAP_STARTING_POS[0])/TILE_X_OFFSET
+        x_offset_right = (self.player.sprite.rect.right - MAP_STARTING_POS[0])/TILE_X_OFFSET
+        y_offset = (self.player.sprite.shadow_y - MAP_STARTING_POS[1] + self.curr_layer*TILE_Y_OFFSET)/TILE_Y_OFFSET
 
         # These variables are to scale down the tiles to a smaller size
-        width = self.tile_width/BIRDS_EYE_SCALE_DOWN_MULT
-        height = self.tile_height/BIRDS_EYE_SCALE_DOWN_MULT
+        # width = self.tile_width/BIRDS_EYE_SCALE_DOWN_MULT
+        # height = self.tile_height/BIRDS_EYE_SCALE_DOWN_MULT
+        width = int(self.tile_width/BIRDS_EYE_SCALE_DOWN_MULT)
+        height = int(self.tile_height/BIRDS_EYE_SCALE_DOWN_MULT)
 
         for layer, key in enumerate(self.map_data.keys()):
             for y, row in enumerate(self.map_data[key]):
                 for x, tile in enumerate(row):
-                    if tile:
-                        pg.draw.rect(screen, 'white', (20 + x*width, 20 + y*height, width, height), 1)
+                    if tile == '.': continue
 
-                        # Topographical heat map; the location of the surf is offsetted just a bit so that it doesn't cover the white outlines
-                        if layer > 0:
-                            surf = pg.Surface((width - 2, height - 2))
-                            surf.fill('red')
-                            surf.set_alpha(50)
-                            screen.blit(surf, (22 + x*width, 21 + y*height))
+                    TL_corner = (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + y*height)
+                    TR_corner = (BIRDS_EYE_STARTING_POS[0] + (x+1)*width, BIRDS_EYE_STARTING_POS[1] + y*height)
+                    BR_corner = (BIRDS_EYE_STARTING_POS[0] + (x+1)*width, BIRDS_EYE_STARTING_POS[1] + (y+1)*height)
+                    BL_corner = (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + (y+1)*height)
+
+                    # Topographical heat map; the location of the surf is offsetted just a bit so that it doesn't cover the white outlines
+                    heatmap_offset_in_px = 1
+                    TL_corner_birdseye = (0 + heatmap_offset_in_px, 0 + heatmap_offset_in_px)
+                    TR_corner_birdseye = (width - heatmap_offset_in_px, 0 + heatmap_offset_in_px)
+                    BR_corner_birdseye = (width - heatmap_offset_in_px, height - heatmap_offset_in_px)
+                    BL_corner_birdseye = (0 + heatmap_offset_in_px, height - heatmap_offset_in_px)
+
+                    heatmap_surf = pg.Surface((width, height))
+                    heatmap_surf.set_alpha(50)
+
+                    if tile == '1':
+                        pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BR_corner, BL_corner], 1)
+                        pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
+
+                    elif tile == '7':
+                        pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BL_corner], 1)
+                        pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BL_corner_birdseye], 0)
+
+                    elif tile == 'F':
+                        pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BR_corner], 1)
+                        pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BR_corner_birdseye], 0)
+
+                    elif tile == 'J':
+                        pg.draw.polygon(screen, 'white', [TL_corner, BR_corner, BL_corner], 1)
+                        pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
+
+                    elif tile == 'L':
+                        pg.draw.polygon(screen, 'white', [TR_corner, BR_corner, BL_corner], 1)
+                        pg.draw.polygon(heatmap_surf, 'red', [TR_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
+
+                    # Don't draw heatmap for layer 0
+                    if layer > 0:
+                        screen.blit(heatmap_surf, (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + y*height))
+
 
         # Draw the Player's width in the orthogonal view
-        left_point = (x_offset_left*width + 20 + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + 20)
-        right_point = (x_offset_right*width + 20 + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + 20)
+        # left_point = (x_offset_left*width + BIRDS_EYE_STARTING_POS[0] + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + BIRDS_EYE_STARTING_POS[1])
+        # right_point = (x_offset_right*width + BIRDS_EYE_STARTING_POS[0] + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + BIRDS_EYE_STARTING_POS[1])
+        left_point = (x_offset_left*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
+        right_point = (x_offset_right*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
         pg.draw.line(screen, 'red', left_point, right_point, 3)
 
         # Draw the Player's shadow dot in the orthogonal view
-        self.curr_col = int(x_offset_center + y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET))
+        # self.curr_col = int(x_offset_center + y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET))
+        # self.curr_row = int((self.player.sprite.shadow_y - MAP_STARTING_POS[1] + (TILE_X_OFFSET*self.curr_layer) )/TILE_Y_OFFSET)
+        self.curr_col = int(x_offset_center)
         self.curr_row = int((self.player.sprite.shadow_y - MAP_STARTING_POS[1] + (TILE_X_OFFSET*self.curr_layer) )/TILE_Y_OFFSET)
-        pg.draw.circle(screen, 'yellow', (x_offset_center*width + 20 + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + 20), 2)
+        # pg.draw.circle(screen, 'yellow', (x_offset_center*width + BIRDS_EYE_STARTING_POS[0] + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
+        pg.draw.circle(screen, 'yellow', (x_offset_center*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
 
     # def blit_player_shadow(self):
     #     curr_jump_height = 1 - (self.player.sprite.shadow_y - self.player.sprite.rect.bottom)/100
@@ -292,21 +337,4 @@ class Map():
 
 
     def update(self):
-        # Offset is subtracted by TILE_Y_OFFSET because of the shift in the topleft corner of rhombus
-        # Since it's 45 degrees, TILE_Y_OFFSET would be the same as making an 'X' offset by just that triangle's amount
-        # Everything is divided by TILE_X_OFFSET to enumerate which tile the player is on
-        # For example, if the player is on the 0th tile in the x-direction, the x_offset should be somewhere between 0.00 -- 1.00
-        # The same logic applies for the y_offset, however the 'self.curr_layer*TILE_X_OFFSET' accounts for how high the player is in elevation
-        x_offset_center = (self.player.sprite.rect.centerx - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
-        # x_offset_left = (self.player.sprite.rect.left - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
-        # x_offset_right = (self.player.sprite.rect.right - MAP_STARTING_POS[0] - TILE_Y_OFFSET)/TILE_X_OFFSET
-        y_offset = (self.player.sprite.shadow_y - MAP_STARTING_POS[1] + self.curr_layer*TILE_X_OFFSET)/TILE_Y_OFFSET
-
-        # These variables are to scale down the tiles to a smaller size
-        width = self.tile_width/BIRDS_EYE_SCALE_DOWN_MULT
-        height = self.tile_height/BIRDS_EYE_SCALE_DOWN_MULT
-
-        # self.curr_col = int(x_offset_center + y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET))
-        self.curr_col = int(x_offset_center)
-        self.curr_row = int((self.player.sprite.shadow_y - MAP_STARTING_POS[1] + (TILE_X_OFFSET*self.curr_layer) )/TILE_Y_OFFSET)
-        pg.draw.circle(screen, 'yellow', (x_offset_center*width + 20 + width*y_offset*(TILE_Y_OFFSET/TILE_X_OFFSET), y_offset*height + 20), 2)
+        pass

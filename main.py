@@ -29,7 +29,7 @@ while True:
     globals.map.update()
     globals.map.blit_map()
     # globals.map.blit_player_shadow()
-    # globals.map.draw_birds_eye_view()
+    globals.map.draw_birds_eye_view()
 
     # globals.player.draw(screen)
     globals.player.update()
