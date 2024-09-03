@@ -240,7 +240,7 @@ class Map():
         # Draw the Player's shadow dot in the orthogonal abstraction
         self.curr_col = int(x_offset_center)
         self.curr_row = int((self.player.sprite.shadow_y - MAP_STARTING_POS[1] + (TILE_X_OFFSET*self.curr_layer) )/TILE_Y_OFFSET)
-        pg.draw.circle(screen, 'yellow', (x_offset_center*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
+        pg.draw.circle(screen, 'green', (x_offset_center*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
 
     def blit_player_shadow(self):
         curr_jump_height = 1 - (self.player.sprite.shadow_y - self.player.sprite.rect.bottom)/100

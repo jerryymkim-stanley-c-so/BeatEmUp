@@ -55,7 +55,6 @@ class Player(pg.sprite.Sprite):
     def jumping(self):
         keys = pg.key.get_pressed()
 
-        # pg.draw.circle(screen, 'yellow', self.shadow_dot, 3)
         pg.draw.circle(screen, 'green', self.shadow_dot, 3)
 
         if not self.isJumping and keys[K_SPACE]:
