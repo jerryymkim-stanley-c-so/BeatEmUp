@@ -37,6 +37,8 @@ TILE_TYPES = {
     "L": half_L,
 }
 
+EMPTY = '.'
+
 class Map():
     def __init__(self):
 
@@ -151,7 +153,7 @@ class Map():
                     x, y, layer = w, d, self.map_dimensions_height - 1 - h
                     tile = self.map_data[layer][y][x]
 
-                    if tile == '.': continue
+                    if tile == EMPTY: continue
 
                     tile_type = TILE_TYPES[tile]
 
@@ -189,7 +191,7 @@ class Map():
         for layer, key in enumerate(self.map_data.keys()):
             for y, row in enumerate(self.map_data[key]):
                 for x, tile in enumerate(row):
-                    if tile == '.': continue
+                    if tile == EMPTY: continue
 
                     TL_corner = (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + y*height)
                     TR_corner = (BIRDS_EYE_STARTING_POS[0] + (x+1)*width, BIRDS_EYE_STARTING_POS[1] + y*height)
