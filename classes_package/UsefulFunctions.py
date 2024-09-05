@@ -1,5 +1,8 @@
 import math
 
+import globals
+import global_constants
+
 def get_center(width:int, height:int) -> tuple:
     return (width/2, height/2)
 
@@ -60,3 +63,11 @@ def distance_between_points(p1, p2):
     distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
     return distance
+
+def projection_coords_by_abstraction_coords(x, y, h):
+    (ground_level_origin_x, ground_level_origin_y) = global_constants.PROJECTION_GROUND_LEVEL_ORIGIN
+
+    x_relative_to_ground_level_origin = x * global_constants.PROJECTION_TILE_X_OFFSET
+    y_relative_to_ground_level_origin = y * global_constants.PROJECTION_TILE_Y_OFFSET - h * global_constants.PROJECTION_TILE_Y_OFFSET
+
+    return (ground_level_origin_x + x_relative_to_ground_level_origin, ground_level_origin_y + y_relative_to_ground_level_origin)

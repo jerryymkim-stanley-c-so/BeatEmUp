@@ -21,12 +21,10 @@ while True:
                 exit()
 
             # Debug Keys
-            elif event.key == K_UP: globals.map.curr_layer += 1
-            elif event.key == K_DOWN and globals.map.curr_layer > 0: globals.map.curr_layer -= 1
             elif event.key == K_p: globals.map.wait_on = not globals.map.wait_on
 
     screen.fill("black")
-    globals.map.update()
+    # globals.map.update()
     globals.map.blit_map()
     globals.map.draw_birds_eye_view()
 
