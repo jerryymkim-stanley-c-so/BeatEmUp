@@ -12,10 +12,9 @@ PLAYER_SIZE = (PLAYER_WIDTH, PLAYER_HEIGHT)
 # PLAYER_MVMT_SPD = 150
 PLAYER_MVMT_X_SPD = 5
 PLAYER_MVMT_Y_SPD = 3
-# PLAYER_JUMP_SPD = 15
-PLAYER_JUMP_SPD = 0.6
+PLAYER_JUMP_SPD = 15
 # PLAYER_GRAVITY_RATE = 1
-PLAYER_GRAVITY_RATE = -0.05
+PLAYER_GRAVITY_RATE = -1
 
 class Player(pg.sprite.Sprite):
     def __init__(self):
@@ -34,6 +33,8 @@ class Player(pg.sprite.Sprite):
 
         self.is_jumping = False
         self.vertical_speed = 0
+        self.horizontal_speed = 0
+        self.depth_speed = 0
         # self.shadow_y = self.rect.bottom
         # self.shadow_dot = (self.rect.centerx, self.shadow_y)
         self.shadow_h = 0
@@ -46,8 +47,16 @@ class Player(pg.sprite.Sprite):
         self.abstraction_y = globals.map.player_start_y
         self.abstraction_h = globals.map.player_start_h
 
+    def apply_movement(self):
+        self.abstraction_x += self.horizontal_speed * self.dt
+        self.abstraction_y += self.depth_speed * self.dt
+
+        self.horizontal_speed = 0
+        self.depth_speed = 0
+
     def apply_gravity(self):
-        self.abstraction_h += self.vertical_speed
+        # self.abstraction_h += self.vertical_speed
+        self.abstraction_h += self.vertical_speed * self.dt
 
         # if self.is_jumping:
         if self.abstraction_h > self.shadow_h:
@@ -67,19 +76,19 @@ class Player(pg.sprite.Sprite):
         # Movement
         if keys[K_a]:
             # self.rect.x -= PLAYER_MVMT_SPD * self.dt
-            self.abstraction_x -= PLAYER_MVMT_X_SPD * self.dt
+            self.horizontal_speed = -PLAYER_MVMT_X_SPD
             
         if keys[K_d]:
             # self.rect.x += PLAYER_MVMT_SPD * self.dt
-            self.abstraction_x += PLAYER_MVMT_X_SPD * self.dt
+            self.horizontal_speed = PLAYER_MVMT_X_SPD
         # if not self.is_jumping and keys[K_w]:
         if keys[K_w]:
             # self.rect.y -= PLAYER_MVMT_SPD * self.dt
-            self.abstraction_y -= PLAYER_MVMT_Y_SPD * self.dt
+            self.depth_speed = -PLAYER_MVMT_Y_SPD
         # if not self.is_jumping and keys[K_s]:
         if keys[K_s]:
             # self.rect.y += PLAYER_MVMT_SPD * self.dt
-            self.abstraction_y += PLAYER_MVMT_Y_SPD * self.dt
+            self.depth_speed = PLAYER_MVMT_Y_SPD
 
         # # Border Collision
         # if self.rect.right >= SCREEN_WIDTH:
@@ -134,6 +143,7 @@ class Player(pg.sprite.Sprite):
     def update(self):
         self.update_dt()
         self.update_shadow()
+        self.apply_movement()
         self.apply_gravity()
         self.update_sprite_position()
 

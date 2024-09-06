@@ -164,6 +164,9 @@ class Map():
         # so that for a given d, we can draw all visible entities at that depth
 
 
+        # TODO: separate surfaces for each depth slice
+
+
         # midbottom = globals.player.sprite.shadow_dot
         # bottom = globals.player.sprite.shadow_y
 
@@ -173,6 +176,10 @@ class Map():
         # - within each row, draw left to right (innermost loop) - although this matters the least
         for d in range(self.map_dimensions_depth):
             for h in range(self.map_dimensions_height - 1, -1, -1):
+
+                # draw all entites at current d and h
+                ######
+
                 for w in range(self.map_dimensions_width):
 
                     x, y, layer = w, d, self.map_dimensions_height - 1 - h
