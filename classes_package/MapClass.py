@@ -173,14 +173,16 @@ class Map():
         # - within each slice, draw the bottom rows before the top rows (intermediate loop)
         # - within each row, draw left to right (innermost loop) - although this matters the least
         for d in range(self.map_dimensions_depth):
-            for h in range(self.map_dimensions_height - 1, -1, -1):
+            # for h in range(self.map_dimensions_height - 1, -1, -1):
+            for h in range(self.map_dimensions_height):
 
                 # draw all entites at current d and h
                 ######
 
                 for w in range(self.map_dimensions_width):
 
-                    x, y, layer = w, d, self.map_dimensions_height - 1 - h
+                    # x, y, layer = w, d, self.map_dimensions_height - 1 - h
+                    x, y, layer = w, d, h
                     tile = self.map_data[layer][y][x]
 
                     if tile == MAP_EMPTY: continue
@@ -207,10 +209,39 @@ class Map():
                         pg.time.wait(0)
                         pg.display.update()
 
-            # Draw Player at correct depth
+                # TODO: occlusion problem:
+                # - improper occlusion for F and 7 tiles higher than the sprite's current elevation,
+                #   because the sprite is properly drawn AFTER tiles belonging to his current elevation,
+                #   but BEFORE tiles belonging to higher elevations. in the case of F and 7, though they are higher,
+                #   they should still be behind the overlapping sprite
+                # - solution: if you keep redrawing ALL sprites belonging to current d after the h-loop, this works most of the time.
+                #   however, you will not get proper occlusion from L and J tiles.
+
+                # # Draw Player at correct depth and height
+                # # TODO: make this apply to all entities by leveraging the aforementioned data structure
+                # # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
+                # # if int(globals.player.sprite.abstraction_y) == d:
+                # if int(globals.player.sprite.abstraction_y) == d and int(globals.player.sprite.abstraction_h) == h:
+                # # if int(globals.player.sprite.abstraction_y) == d and int(globals.player.sprite.abstraction_h) == self.map_dimensions_height - 1 - h:
+                #     print(f'drawing player at d == {d}, h == {h}')
+                #     globals.map.blit_player_shadow()
+                #     globals.player.draw(screen)
+
+            # TODO: occlusion problem:
+            # - improper occlusion for L and J tiles at the sprite's current depth,
+            #   because the sprite is properly drawn AFTER tiles belonging to his depth.
+            #   however, L and J at current depth should occlude the sprite.
+            # - solution: if you only draw sprites in the inner h-loop (i.e. at the correct d and h),
+            #   you can ensure that at least higher blocks properly occlude the sprite.
+            #   however, F and 7 tiles higher than the sprite, which should be behind the sprite, will improperly occlude him
+            # - overall, the better option seems to be drawing sprite within the d-loop, but outside of the h-loop.
+            #   the improper L and J non-occlusion is rare and not super noticeable.
+
+            # Draw Player at correct depth and height
             # TODO: make this apply to all entities by leveraging the aforementioned data structure
-            # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
+            # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS\
             if int(globals.player.sprite.abstraction_y) == d:
+                print(f'drawing player at d == {d}')
                 globals.map.blit_player_shadow()
                 globals.player.draw(screen)
 

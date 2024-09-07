@@ -80,19 +80,19 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
 
         # Movement
-        if keys[K_a]:
+        if keys[K_a] and (self.abstraction_h == self.shadow_h or self.is_jumping):
             # self.rect.x -= PLAYER_MVMT_SPD * self.dt
             self.horizontal_speed = -PLAYER_MVMT_X_SPD
             
-        if keys[K_d]:
+        if keys[K_d] and (self.abstraction_h == self.shadow_h or self.is_jumping):
             # self.rect.x += PLAYER_MVMT_SPD * self.dt
             self.horizontal_speed = PLAYER_MVMT_X_SPD
         # if not self.is_jumping and keys[K_w]:
-        if keys[K_w]:
+        if keys[K_w] and (self.abstraction_h == self.shadow_h or self.is_jumping):
             # self.rect.y -= PLAYER_MVMT_SPD * self.dt
             self.depth_speed = -PLAYER_MVMT_Y_SPD
         # if not self.is_jumping and keys[K_s]:
-        if keys[K_s]:
+        if keys[K_s] and (self.abstraction_h == self.shadow_h or self.is_jumping):
             # self.rect.y += PLAYER_MVMT_SPD * self.dt
             self.depth_speed = PLAYER_MVMT_Y_SPD
 
@@ -106,7 +106,7 @@ class Player(pg.sprite.Sprite):
         # if not self.is_jumping and self.rect.bottom <= map.get_map_top():
         #     self.rect.bottom = map.get_map_top()
 
-        if not self.is_jumping and keys[K_SPACE]:
+        if keys[K_SPACE] and not self.is_jumping:
             self.is_jumping = True
             self.vertical_speed = PLAYER_JUMP_SPD
 
