@@ -12,7 +12,7 @@ PLAYER_SIZE = (PLAYER_WIDTH, PLAYER_HEIGHT)
 # PLAYER_MVMT_SPD = 150
 PLAYER_MVMT_X_SPD = 5
 PLAYER_MVMT_Y_SPD = 3
-PLAYER_JUMP_SPD = 15
+PLAYER_JUMP_SPD = 16
 # PLAYER_GRAVITY_RATE = 1
 PLAYER_GRAVITY_RATE = -1
 
@@ -48,8 +48,14 @@ class Player(pg.sprite.Sprite):
         self.abstraction_h = globals.map.player_start_h
 
     def apply_movement(self):
-        self.abstraction_x += self.horizontal_speed * self.dt
-        self.abstraction_y += self.depth_speed * self.dt
+
+        proposed_x = self.abstraction_x + self.horizontal_speed * self.dt
+        proposed_y = self.abstraction_y + self.depth_speed * self.dt
+
+        # NOTE: we check self.abstraction_h + 1 because the collision checking function ceils the given h and checks the voxel underneath it
+        if point_collides_with_terrain(proposed_x, proposed_y, math.floor(self.abstraction_h + 1), globals.map) == False:
+            self.abstraction_x = proposed_x
+            self.abstraction_y = proposed_y
 
         self.horizontal_speed = 0
         self.depth_speed = 0
@@ -70,7 +76,7 @@ class Player(pg.sprite.Sprite):
             self.is_jumping = False
             self.vertical_speed = 0
 
-    def resolve_movement(self):
+    def resolve_input(self):
         keys = pg.key.get_pressed()
 
         # Movement
@@ -100,9 +106,6 @@ class Player(pg.sprite.Sprite):
         # if not self.is_jumping and self.rect.bottom <= map.get_map_top():
         #     self.rect.bottom = map.get_map_top()
 
-    def resolve_jumping(self):
-        keys = pg.key.get_pressed()
-
         if not self.is_jumping and keys[K_SPACE]:
             self.is_jumping = True
             self.vertical_speed = PLAYER_JUMP_SPD
@@ -122,19 +125,14 @@ class Player(pg.sprite.Sprite):
 
         # Scan down from current position to update shadow dot elevation
         self.shadow_h = min(int(self.abstraction_h), globals.map.map_dimensions_height - 1)  # shadow cannot exceed highest map layer
-        x, y = self.abstraction_x, self.abstraction_y
-        x_frac, y_frac = x - int(x), y - int(y)
-        # TODO: what about half-tiles? need a function to determine if your current float pos falls through or not
+
         while (self.shadow_h - 1) in globals.map.map_data \
-            and (globals.map.map_data[self.shadow_h][int(y)][int(x)] == MAP_EMPTY \
-                 or (globals.map.map_data[self.shadow_h][int(y)][int(x)] == MAP_7 and x_frac > 1-y_frac) \
-                 or (globals.map.map_data[self.shadow_h][int(y)][int(x)] == MAP_F and y_frac > x_frac) \
-                 or (globals.map.map_data[self.shadow_h][int(y)][int(x)] == MAP_J and y_frac < x_frac) \
-                 or (globals.map.map_data[self.shadow_h][int(y)][int(x)] == MAP_L and x_frac < 1-y_frac)):
+            and point_collides_with_terrain(self.abstraction_x, self.abstraction_y, self.shadow_h, globals.map) == False:
             self.shadow_h -= 1
-        
+
         # draw green dot at shadow
         self.shadow_projection = projection_coords_by_abstraction_coords(self.abstraction_x, self.abstraction_y, self.shadow_h)
+        # TODO: it doesn't seem ideal for most classes to be concerned with drawing to the screen. should something else be handling the drawing?
         pg.draw.circle(screen, 'green', self.shadow_projection, 3)
 
     def update_dt(self):
@@ -148,5 +146,4 @@ class Player(pg.sprite.Sprite):
         self.update_sprite_position()
 
         # Resolve inputs
-        self.resolve_movement()
-        self.resolve_jumping()
+        self.resolve_input()

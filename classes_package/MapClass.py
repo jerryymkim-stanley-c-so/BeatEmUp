@@ -36,8 +36,6 @@ TILE_TYPES = {
     "L": half_L,
 }
 
-# MAP_EMPTY = '.'
-
 class Map():
     def __init__(self):
 
@@ -211,6 +209,7 @@ class Map():
 
             # Draw Player at correct depth
             # TODO: make this apply to all entities by leveraging the aforementioned data structure
+            # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
             if int(globals.player.sprite.abstraction_y) == d:
                 globals.map.blit_player_shadow()
                 globals.player.draw(screen)
@@ -249,23 +248,23 @@ class Map():
                     heatmap_surf = pg.Surface((width, height))
                     heatmap_surf.set_alpha(50)
 
-                    if tile == '1':
+                    if tile == MAP_FLOOR:
                         pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
 
-                    elif tile == '7':
+                    elif tile == MAP_7:
                         pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BL_corner_birdseye], 0)
 
-                    elif tile == 'F':
+                    elif tile == MAP_F:
                         pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BR_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BR_corner_birdseye], 0)
 
-                    elif tile == 'J':
+                    elif tile == MAP_J:
                         pg.draw.polygon(screen, 'white', [TL_corner, BR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
 
-                    elif tile == 'L':
+                    elif tile == MAP_L:
                         pg.draw.polygon(screen, 'white', [TR_corner, BR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TR_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
 
