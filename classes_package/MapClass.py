@@ -10,11 +10,9 @@ PLAYER_SHADOW_ALPHA = 100
 
 COLORKEY = (255, 255, 255)
 
-# MAP_STARTING_POS = (0, 0)
 MAP_STARTING_POS = PROJECTION_GROUND_LEVEL_ORIGIN
 BIRDS_EYE_SCALE_DOWN_MULT = 3
 BIRDS_EYE_STARTING_POS = (20, 20)
-
 
 file_map = 'ortho_map.txt'
 file_cube = 'graphics/ortho_cube.png'
@@ -118,10 +116,6 @@ class Map():
 
         # Debug Variables
         self.font = pg.font.Font(None, 25)
-        # self.curr_layer = 0
-        # self.curr_layer = 1
-        # self.curr_row = 0
-        # self.curr_col = 0
         self.wait_on = False
 
     def on_globals_loaded(self):
@@ -157,31 +151,16 @@ class Map():
     def blit_map(self):
         # Draw Tiles
 
-
-        # TODO: cycle through visible entities list, and organize them by depth in a dict
-        # so that for a given d, we can draw all visible entities at that depth
-
-
         # TODO: separate surfaces for each depth slice
-
-
-        # midbottom = globals.player.sprite.shadow_dot
-        # bottom = globals.player.sprite.shadow_y
 
         # Note the drawing order, for purposes of proper occlusion:
         # - draw the background slices before the foreground slices (outermost loop)
         # - within each slice, draw the bottom rows before the top rows (intermediate loop)
         # - within each row, draw left to right (innermost loop) - although this matters the least
         for d in range(self.map_dimensions_depth):
-            # for h in range(self.map_dimensions_height - 1, -1, -1):
             for h in range(self.map_dimensions_height):
-
-                # draw all entites at current d and h
-                ######
-
                 for w in range(self.map_dimensions_width):
 
-                    # x, y, layer = w, d, self.map_dimensions_height - 1 - h
                     x, y, layer = w, d, h
                     tile = self.map_data[layer][y][x]
 
@@ -205,11 +184,12 @@ class Map():
                         rect
                     )
 
+                    # Debug
                     if self.wait_on:
                         pg.time.wait(0)
                         pg.display.update()
 
-                # TODO: occlusion problem:
+                # NOTE: occlusion problem if we draw sprite(s) here, at given d and h:
                 # - improper occlusion for F and 7 tiles higher than the sprite's current elevation,
                 #   because the sprite is properly drawn AFTER tiles belonging to his current elevation,
                 #   but BEFORE tiles belonging to higher elevations. in the case of F and 7, though they are higher,
@@ -217,16 +197,7 @@ class Map():
                 # - solution: if you keep redrawing ALL sprites belonging to current d after the h-loop, this works most of the time.
                 #   however, you will not get proper occlusion from L and J tiles.
 
-                # # Draw Player at correct depth and height
-                # # TODO: make this apply to all entities by leveraging the aforementioned data structure
-                # # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
-                # # if int(globals.player.sprite.abstraction_y) == d:
-                # if int(globals.player.sprite.abstraction_y) == d and int(globals.player.sprite.abstraction_h) == h:
-                # # if int(globals.player.sprite.abstraction_y) == d and int(globals.player.sprite.abstraction_h) == self.map_dimensions_height - 1 - h:
-                #     print(f'drawing player at d == {d}, h == {h}')
-                #     globals.map.blit_player_shadow()
-                #     globals.player.draw(screen)
-
+            # Draw Player at correct depth and height
             # TODO: occlusion problem:
             # - improper occlusion for L and J tiles at the sprite's current depth,
             #   because the sprite is properly drawn AFTER tiles belonging to his depth.
@@ -236,22 +207,18 @@ class Map():
             #   however, F and 7 tiles higher than the sprite, which should be behind the sprite, will improperly occlude him
             # - overall, the better option seems to be drawing sprite within the d-loop, but outside of the h-loop.
             #   the improper L and J non-occlusion is rare and not super noticeable.
+            # TODO: don't just draw player. cycle through visible entities list, and organize them by depth
+            # in a dict so that for a given d, we can draw all visible entities at that depth
+            # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
 
-            # Draw Player at correct depth and height
-            # TODO: make this apply to all entities by leveraging the aforementioned data structure
-            # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS\
             if int(globals.player.sprite.abstraction_y) == d:
                 print(f'drawing player at d == {d}')
                 globals.map.blit_player_shadow()
                 globals.player.draw(screen)
 
 
+    # TODO: RENAME ALL REFERENCES TO 'BIRDS EYE VIEW' TO SOMETHING LIKE 'ORTHOGONAL ABSTRACTION'
     def draw_birds_eye_view(self):
-        # x_offset_center = (globals.player.sprite.rect.centerx - MAP_STARTING_POS[0])/PROJECTION_TILE_X_OFFSET
-        # x_offset_left = (globals.player.sprite.rect.left - MAP_STARTING_POS[0])/PROJECTION_TILE_X_OFFSET
-        # x_offset_right = (globals.player.sprite.rect.right - MAP_STARTING_POS[0])/PROJECTION_TILE_X_OFFSET
-        # y_offset = (globals.player.sprite.shadow_y - MAP_STARTING_POS[1] + self.curr_layer*PROJECTION_TILE_Y_OFFSET)/PROJECTION_TILE_Y_OFFSET
-
         x_offset = globals.player.sprite.abstraction_x
         y_offset = globals.player.sprite.abstraction_y
 
@@ -303,34 +270,23 @@ class Map():
                     if layer > 0:
                         screen.blit(heatmap_surf, (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + y*height))
 
-        # Draw the Player's width in the orthogonal abstraction
-        # left_point = (x_offset_left*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
-        # right_point = (x_offset_right*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
+        # Draw the Player's width
         player_location = (x_offset*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
         line_length = PLAYER_WIDTH / PROJECTION_TILE_X_OFFSET * width
         left_point = (player_location[0] - line_length/2, player_location[1])
         right_point = (player_location[0] + line_length/2, player_location[1])
         pg.draw.line(screen, 'red', left_point, right_point, 3)
 
-        # self.curr_col = int(x_offset_center)
-        # self.curr_row = int((globals.player.sprite.shadow_y - MAP_STARTING_POS[1] + (PROJECTION_TILE_X_OFFSET*self.curr_layer) )/PROJECTION_TILE_Y_OFFSET)
-
-        # Draw the Player's shadow dot in the orthogonal abstraction
-        # pg.draw.circle(screen, 'green', (x_offset_center*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
+        # Draw the Player's shadow dot
         pg.draw.circle(screen, 'green', (x_offset*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
 
     def blit_player_shadow(self):
-        # curr_jump_height = 1 - (globals.player.sprite.shadow_y - globals.player.sprite.rect.bottom)/100
-        # if curr_jump_height <= 0: curr_jump_height = 0
         curr_jump_height = (globals.player.sprite.abstraction_h - globals.player.sprite.shadow_h) / 10
         shadow_multiplier = max(1 - curr_jump_height, 0)
-        # player_shadow_surf = pg.Surface((PLAYER_SHADOW_WIDTH*curr_jump_height, PLAYER_SHADOW_HEIGHT*curr_jump_height), pg.SRCALPHA)
         player_shadow_surf = pg.Surface((PLAYER_SHADOW_WIDTH*shadow_multiplier, PLAYER_SHADOW_HEIGHT*shadow_multiplier), pg.SRCALPHA)
         pg.draw.ellipse(player_shadow_surf, (0,0,0), player_shadow_surf.get_frect(topleft=(0,0)))
         player_shadow_surf.set_alpha(PLAYER_SHADOW_ALPHA)
-        # screen.blit(player_shadow_surf, player_shadow_surf.get_frect(center=(globals.player.sprite.rect.centerx, globals.player.sprite.shadow_y)))
         screen.blit(player_shadow_surf, player_shadow_surf.get_frect(center=projection_coords_by_abstraction_coords(globals.player.sprite.abstraction_x, globals.player.sprite.abstraction_y, globals.player.sprite.shadow_h)))
-
 
     def update(self):
         pass

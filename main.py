@@ -7,8 +7,6 @@ pg.init()
 import globals
 from global_constants import *
 
-# Hello from here
-
 while True:
     for event in pg.event.get():
         # Quit
