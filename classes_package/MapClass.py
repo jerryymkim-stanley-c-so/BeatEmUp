@@ -10,12 +10,9 @@ PLAYER_SHADOW_ALPHA = 100
 
 COLORKEY = (255, 255, 255)
 
-MAP_STARTING_POS = (0, 0)
-TILE_X_OFFSET = 50
-TILE_Y_OFFSET = 50
+MAP_STARTING_POS = PROJECTION_GROUND_LEVEL_ORIGIN
 BIRDS_EYE_SCALE_DOWN_MULT = 3
 BIRDS_EYE_STARTING_POS = (20, 20)
-
 
 file_map = 'ortho_map.txt'
 file_cube = 'graphics/ortho_cube.png'
@@ -37,30 +34,40 @@ TILE_TYPES = {
     "L": half_L,
 }
 
-EMPTY = '.'
-
 class Map():
     def __init__(self):
 
         # Init attributes
-        self.player = globals.player
         self.map_data = {}
         self.map_dimensions_height = 0
         self.map_dimensions_width = 0
         self.map_dimensions_depth = 0
+        self.player_start_x = 0
+        self.player_start_y = 0
+        self.player_start_h = 0
 
         # Read map file
         f = open(file_map)
-        for curr_layer, layer_str in enumerate(f.read().split('\n\n')):
-            layer_data = layer_str.split('\n')
-            self.map_data[curr_layer] = []
-            for i in range(1, len(layer_data)):
-                row = layer_data[i]
-                self.map_data[curr_layer].append([c for c in row])
-                self.map_dimensions_width = max(self.map_dimensions_width, len(row))
-            
-            self.map_dimensions_depth = max(self.map_dimensions_depth, len(layer_data) - 1)
-            self.map_dimensions_height += 1
+        for block_idx, block_str in enumerate(f.read().split('\n\n')):
+            [ block_label, *block_data ] = block_str.split('\n')
+
+            if 'LAYER' in block_label:
+                curr_layer = block_idx
+                self.map_data[curr_layer] = []
+                for row in block_data:
+                    self.map_data[curr_layer].append([c for c in row])
+                    self.map_dimensions_width = max(self.map_dimensions_width, len(row))
+                self.map_dimensions_depth = max(self.map_dimensions_depth, len(block_data))
+                self.map_dimensions_height += 1
+            elif 'DATA' in block_label:
+                for line in block_data:
+                    [ line_label, line_data ] = line.split(': ')
+                    match line_label:
+                        case 'Player Start':
+                            self.player_start_x, self.player_start_y, self.player_start_h = ( float(n) for n in line_data.split(', ') )
+                            print(f"x: {self.player_start_x}")
+                            print(f"y: {self.player_start_y}")
+                            print(f"h: {self.player_start_h}")
         f.close()
 
         # Init tiles
@@ -109,27 +116,31 @@ class Map():
 
         # Debug Variables
         self.font = pg.font.Font(None, 25)
-        self.curr_layer = 0
-        self.curr_layer = 1
-        self.curr_row = 0
-        self.curr_col = 0
         self.wait_on = False
 
+    def on_globals_loaded(self):
+        pass
+
+
     def blit_debug(self):
+
         # Show Current Row
-        curr_row_surf = self.font.render(f'Current Row: {int(self.curr_row)}', None, (255,255,255))
+        curr_row = int(globals.player.sprite.abstraction_y)
+        curr_row_surf = self.font.render(f'Current Row: {int(curr_row)}', None, (255,255,255))
         curr_row_rect = curr_row_surf.get_frect(bottomleft=(0,SCREEN_HEIGHT))
         screen.blit(curr_row_surf, curr_row_rect)
         # Height of Text
         text_height = curr_row_surf.get_height()
 
         # Show Current Col
-        curr_col_surf = self.font.render(f'Current Col: {int(self.curr_col)}', None, (255,255,255))
+        curr_col = int(globals.player.sprite.abstraction_x)
+        curr_col_surf = self.font.render(f'Current Col: {int(curr_col)}', None, (255,255,255))
         curr_col_rect = curr_col_surf.get_frect(bottomleft=(0,SCREEN_HEIGHT - text_height*1))
         screen.blit(curr_col_surf, curr_col_rect)
 
         # Show Current Layer
-        curr_layer_surf = self.font.render(f'Current Layer: {int(self.curr_layer)}', None, (255,255,255))
+        curr_layer = int(globals.player.sprite.abstraction_h)
+        curr_layer_surf = self.font.render(f'Current Layer: {int(curr_layer)}', None, (255,255,255))
         curr_layer_rect = curr_row_surf.get_frect(bottomleft=(0,SCREEN_HEIGHT - text_height*2))
         screen.blit(curr_layer_surf, curr_layer_rect)
 
@@ -139,50 +150,77 @@ class Map():
 
     def blit_map(self):
         # Draw Tiles
-        midbottom = self.player.sprite.shadow_dot
-        bottom = self.player.sprite.shadow_y
+
+        # TODO: separate surfaces for each depth slice
 
         # Note the drawing order, for purposes of proper occlusion:
         # - draw the background slices before the foreground slices (outermost loop)
         # - within each slice, draw the bottom rows before the top rows (intermediate loop)
         # - within each row, draw left to right (innermost loop) - although this matters the least
         for d in range(self.map_dimensions_depth):
-            for h in range(self.map_dimensions_height - 1, -1, -1):
+            for h in range(self.map_dimensions_height):
                 for w in range(self.map_dimensions_width):
 
-                    x, y, layer = w, d, self.map_dimensions_height - 1 - h
+                    x, y, layer = w, d, h
                     tile = self.map_data[layer][y][x]
 
-                    if tile == EMPTY: continue
+                    if tile == MAP_EMPTY: continue
 
                     tile_type = TILE_TYPES[tile]
 
                     rect = self.cube.get_frect(topleft=(
-                        MAP_STARTING_POS[0] + x*TILE_X_OFFSET,
-                        MAP_STARTING_POS[1] + y*TILE_Y_OFFSET - layer*TILE_Y_OFFSET,
+                        MAP_STARTING_POS[0] + x*PROJECTION_TILE_X_OFFSET,
+                        MAP_STARTING_POS[1] + y*PROJECTION_TILE_Y_OFFSET - layer*PROJECTION_TILE_Y_OFFSET,
                     ))
 
                     # Highlight the tile the player is on
                     screen.blit(
-                        self.highlighted_tiles[tile_type] if rect.collidepoint(midbottom) and rect.top <= bottom <= rect.top + self.tile_width and self.curr_layer == layer else self.tiles_by_layer[layer][tile_type],
+                        # self.highlighted_tiles[tile_type]   if rect.collidepoint(midbottom) \
+                        self.highlighted_tiles[tile_type]   if rect.collidepoint(globals.player.sprite.shadow_projection) \
+                                                                # and rect.top <= bottom <= rect.top + self.tile_width \
+                                                                and rect.top <= globals.player.sprite.shadow_projection[1] <= rect.top + self.tile_width \
+                                                                and int(globals.player.sprite.abstraction_h) == layer \
+                                                            else self.tiles_by_layer[layer][tile_type],
                         rect
                     )
 
+                    # Debug
                     if self.wait_on:
                         pg.time.wait(0)
                         pg.display.update()
 
-            # Draw Player at correct depth
-            if self.curr_row == d:
+                # NOTE: occlusion problem if we draw sprite(s) here, at given d and h:
+                # - improper occlusion for F and 7 tiles higher than the sprite's current elevation,
+                #   because the sprite is properly drawn AFTER tiles belonging to his current elevation,
+                #   but BEFORE tiles belonging to higher elevations. in the case of F and 7, though they are higher,
+                #   they should still be behind the overlapping sprite
+                # - solution: if you keep redrawing ALL sprites belonging to current d after the h-loop, this works most of the time.
+                #   however, you will not get proper occlusion from L and J tiles.
+
+            # Draw Player at correct depth and height
+            # TODO: occlusion problem:
+            # - improper occlusion for L and J tiles at the sprite's current depth,
+            #   because the sprite is properly drawn AFTER tiles belonging to his depth.
+            #   however, L and J at current depth should occlude the sprite.
+            # - solution: if you only draw sprites in the inner h-loop (i.e. at the correct d and h),
+            #   you can ensure that at least higher blocks properly occlude the sprite.
+            #   however, F and 7 tiles higher than the sprite, which should be behind the sprite, will improperly occlude him
+            # - overall, the better option seems to be drawing sprite within the d-loop, but outside of the h-loop.
+            #   the improper L and J non-occlusion is rare and not super noticeable.
+            # TODO: don't just draw player. cycle through visible entities list, and organize them by depth
+            # in a dict so that for a given d, we can draw all visible entities at that depth
+            # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
+
+            if int(globals.player.sprite.abstraction_y) == d:
+                print(f'drawing player at d == {d}')
                 globals.map.blit_player_shadow()
                 globals.player.draw(screen)
 
 
+    # TODO: RENAME ALL REFERENCES TO 'BIRDS EYE VIEW' TO SOMETHING LIKE 'ORTHOGONAL ABSTRACTION'
     def draw_birds_eye_view(self):
-        x_offset_center = (self.player.sprite.rect.centerx - MAP_STARTING_POS[0])/TILE_X_OFFSET
-        x_offset_left = (self.player.sprite.rect.left - MAP_STARTING_POS[0])/TILE_X_OFFSET
-        x_offset_right = (self.player.sprite.rect.right - MAP_STARTING_POS[0])/TILE_X_OFFSET
-        y_offset = (self.player.sprite.shadow_y - MAP_STARTING_POS[1] + self.curr_layer*TILE_Y_OFFSET)/TILE_Y_OFFSET
+        x_offset = globals.player.sprite.abstraction_x
+        y_offset = globals.player.sprite.abstraction_y
 
         # These variables are to scale down the tiles to a smaller size
         width = int(self.tile_width/BIRDS_EYE_SCALE_DOWN_MULT)
@@ -191,7 +229,7 @@ class Map():
         for layer, key in enumerate(self.map_data.keys()):
             for y, row in enumerate(self.map_data[key]):
                 for x, tile in enumerate(row):
-                    if tile == EMPTY: continue
+                    if tile == MAP_EMPTY: continue
 
                     TL_corner = (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + y*height)
                     TR_corner = (BIRDS_EYE_STARTING_POS[0] + (x+1)*width, BIRDS_EYE_STARTING_POS[1] + y*height)
@@ -208,23 +246,23 @@ class Map():
                     heatmap_surf = pg.Surface((width, height))
                     heatmap_surf.set_alpha(50)
 
-                    if tile == '1':
+                    if tile == MAP_FLOOR:
                         pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
 
-                    elif tile == '7':
+                    elif tile == MAP_7:
                         pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BL_corner_birdseye], 0)
 
-                    elif tile == 'F':
+                    elif tile == MAP_F:
                         pg.draw.polygon(screen, 'white', [TL_corner, TR_corner, BR_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, TR_corner_birdseye, BR_corner_birdseye], 0)
 
-                    elif tile == 'J':
+                    elif tile == MAP_J:
                         pg.draw.polygon(screen, 'white', [TL_corner, BR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TL_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
 
-                    elif tile == 'L':
+                    elif tile == MAP_L:
                         pg.draw.polygon(screen, 'white', [TR_corner, BR_corner, BL_corner], 1)
                         pg.draw.polygon(heatmap_surf, 'red', [TR_corner_birdseye, BR_corner_birdseye, BL_corner_birdseye], 0)
 
@@ -232,25 +270,23 @@ class Map():
                     if layer > 0:
                         screen.blit(heatmap_surf, (BIRDS_EYE_STARTING_POS[0] + x*width, BIRDS_EYE_STARTING_POS[1] + y*height))
 
-        # Draw the Player's width in the orthogonal abstraction
-        left_point = (x_offset_left*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
-        right_point = (x_offset_right*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
+        # Draw the Player's width
+        player_location = (x_offset*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1])
+        line_length = PLAYER_WIDTH / PROJECTION_TILE_X_OFFSET * width
+        left_point = (player_location[0] - line_length/2, player_location[1])
+        right_point = (player_location[0] + line_length/2, player_location[1])
         pg.draw.line(screen, 'red', left_point, right_point, 3)
 
-        # Draw the Player's shadow dot in the orthogonal abstraction
-        self.curr_col = int(x_offset_center)
-        self.curr_row = int((self.player.sprite.shadow_y - MAP_STARTING_POS[1] + (TILE_X_OFFSET*self.curr_layer) )/TILE_Y_OFFSET)
-        pg.draw.circle(screen, 'green', (x_offset_center*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
+        # Draw the Player's shadow dot
+        pg.draw.circle(screen, 'green', (x_offset*width + BIRDS_EYE_STARTING_POS[0], y_offset*height + BIRDS_EYE_STARTING_POS[1]), 2)
 
     def blit_player_shadow(self):
-        curr_jump_height = 1 - (self.player.sprite.shadow_y - self.player.sprite.rect.bottom)/100
-        if curr_jump_height <= 0: curr_jump_height = 0
-
-        player_shadow_surf = pg.Surface((PLAYER_SHADOW_WIDTH*curr_jump_height, PLAYER_SHADOW_HEIGHT*curr_jump_height), pg.SRCALPHA)
+        curr_jump_height = (globals.player.sprite.abstraction_h - globals.player.sprite.shadow_h) / 10
+        shadow_multiplier = max(1 - curr_jump_height, 0)
+        player_shadow_surf = pg.Surface((PLAYER_SHADOW_WIDTH*shadow_multiplier, PLAYER_SHADOW_HEIGHT*shadow_multiplier), pg.SRCALPHA)
         pg.draw.ellipse(player_shadow_surf, (0,0,0), player_shadow_surf.get_frect(topleft=(0,0)))
         player_shadow_surf.set_alpha(PLAYER_SHADOW_ALPHA)
-        screen.blit(player_shadow_surf, player_shadow_surf.get_frect(center=(self.player.sprite.rect.centerx, self.player.sprite.shadow_y)))
-
+        screen.blit(player_shadow_surf, player_shadow_surf.get_frect(center=projection_coords_by_abstraction_coords(globals.player.sprite.abstraction_x, globals.player.sprite.abstraction_y, globals.player.sprite.shadow_h)))
 
     def update(self):
         pass
