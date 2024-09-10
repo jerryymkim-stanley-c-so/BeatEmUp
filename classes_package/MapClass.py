@@ -116,6 +116,7 @@ class Map():
 
         # Debug Variables
         self.font = pg.font.Font(None, 25)
+        self.show_highlight = False
         self.wait_on = False
 
     def on_globals_loaded(self):
@@ -168,20 +169,18 @@ class Map():
 
                     tile_type = TILE_TYPES[tile]
 
-                    rect = self.cube.get_frect(topleft=(
-                        MAP_STARTING_POS[0] + x*PROJECTION_TILE_X_OFFSET,
-                        MAP_STARTING_POS[1] + y*PROJECTION_TILE_Y_OFFSET - layer*PROJECTION_TILE_Y_OFFSET,
-                    ))
-
                     # Highlight the tile the player is on
                     screen.blit(
-                        # self.highlighted_tiles[tile_type]   if rect.collidepoint(midbottom) \
-                        self.highlighted_tiles[tile_type]   if rect.collidepoint(globals.player.sprite.shadow_projection) \
-                                                                # and rect.top <= bottom <= rect.top + self.tile_width \
-                                                                and rect.top <= globals.player.sprite.shadow_projection[1] <= rect.top + self.tile_width \
-                                                                and int(globals.player.sprite.abstraction_h) == layer \
+                        self.highlighted_tiles[tile_type]   if self.show_highlight \
+                                                                and globals.player.sprite.abstraction_h == globals.player.sprite.shadow_h \
+                                                                and x == int(globals.player.sprite.abstraction_x) \
+                                                                and y == int(globals.player.sprite.abstraction_y) \
+                                                                and layer == int(globals.player.sprite.abstraction_h) \
                                                             else self.tiles_by_layer[layer][tile_type],
-                        rect
+                        self.cube.get_frect(topleft=(
+                            MAP_STARTING_POS[0] + x*PROJECTION_TILE_X_OFFSET,
+                            MAP_STARTING_POS[1] + y*PROJECTION_TILE_Y_OFFSET - layer*PROJECTION_TILE_Y_OFFSET,
+                        ))
                     )
 
                     # Debug
@@ -212,7 +211,7 @@ class Map():
             # TODO: CONSIDER MOVING ALL DRAW FUNCTIONS TO A SEPARATE CLASS
 
             if int(globals.player.sprite.abstraction_y) == d:
-                print(f'drawing player at d == {d}')
+                # print(f'drawing player at d == {d}')
                 globals.map.blit_player_shadow()
                 globals.player.draw(screen)
 

@@ -76,6 +76,14 @@ class Player(pg.sprite.Sprite):
             self.is_jumping = False
             self.vertical_speed = 0
 
+        # TODO: Add code to check for head collisions. This is not going to be common.
+        # The only reason we don't do something similar for floor collisions here is because of the concept of the shadow dot,
+        # although the shadow dot itself is constantly doing a scan down.
+        # - Is it worth keeping the shadow dot?
+        # - Should there be an upward analog to the shadow dot for ceiling collisions?
+        # - Basically, should we be consistent about floor/ceiling collisions?
+        # - Or should we just ignore ceiling collisions altogether, as it likely wouldn't ever come up in a level?
+
     # TODO: THINK ABOUT WHETHER INPUTS BELONG IN A SEPARATE CLASS?
     # - yes: cleanly separating the keyboard from the player specifically may be beneficial down the line,
     #        especially if the keyboard affects other things beyond just the player
@@ -101,7 +109,7 @@ class Player(pg.sprite.Sprite):
             and (self.abstraction_h == self.shadow_h or self.is_jumping):
             self.depth_speed = PLAYER_MVMT_Y_SPD
 
-        if keys[K_SPACE] and not self.is_jumping:
+        if keys[K_SPACE] and self.abstraction_h == self.shadow_h:
             self.is_jumping = True
             self.vertical_speed = PLAYER_JUMP_SPD
 
