@@ -65,9 +65,6 @@ class Map():
                     match line_label:
                         case 'Player Start':
                             self.player_start_x, self.player_start_y, self.player_start_h = ( float(n) for n in line_data.split(', ') )
-                            print(f"x: {self.player_start_x}")
-                            print(f"y: {self.player_start_y}")
-                            print(f"h: {self.player_start_h}")
         f.close()
 
         # Init tiles

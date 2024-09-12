@@ -86,7 +86,7 @@ def point_collides_with_terrain(x, y, h, map):
 
     if not 0 <= x < map.map_dimensions_width \
         or not 0 <= y < map.map_dimensions_depth:
-        print('NONE | x or y oob')
+        # print('NONE | x or y oob')
         return None
 
     if not 0 <= ceil_h < map.map_dimensions_height:
