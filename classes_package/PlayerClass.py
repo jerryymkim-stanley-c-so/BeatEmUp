@@ -4,14 +4,12 @@ from pygame.locals import *
 import globals
 from global_constants import *
 from .UsefulFunctions import *
-# from .MapClass import Map
 
 
-PLAYER_SIZE = (PLAYER_WIDTH, PLAYER_HEIGHT)
-PLAYER_MVMT_X_SPD = 5
-PLAYER_MVMT_Y_SPD = 3
-PLAYER_JUMP_SPD = 16
-PLAYER_GRAVITY_RATE = -1
+WALK_X_SPEED = 5
+WALK_Y_SPEED = 3
+JUMP_SPEED = 16
+GRAVITY_RATE = -1
 
 class Player(pg.sprite.Sprite):
     def __init__(self):
@@ -22,7 +20,7 @@ class Player(pg.sprite.Sprite):
         self.abstraction_y = 0
         self.abstraction_h = 0
 
-        self.image = pg.Surface(PLAYER_SIZE)
+        self.image = pg.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
         self.image.fill(color=(255,0,0))
         pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
         self.rect = self.image.get_frect(center=(0,0))
@@ -68,7 +66,7 @@ class Player(pg.sprite.Sprite):
 
         # If abstraction_h is greater than shadow_h, we are airborne
         if self.abstraction_h > self.shadow_h:
-            self.vertical_speed += PLAYER_GRAVITY_RATE
+            self.vertical_speed += GRAVITY_RATE
 
         # If abstraction_h is less than shadow_h, we have landed (and are colliding with the ground), so apply fixes
         if self.abstraction_h < self.shadow_h:
@@ -95,23 +93,23 @@ class Player(pg.sprite.Sprite):
         # Movement
         if keys[K_a] \
             and (self.abstraction_h == self.shadow_h or self.is_jumping):  # allow for directional control when grounded or mid-jump, but not when falling
-            self.horizontal_speed = -PLAYER_MVMT_X_SPD
+            self.horizontal_speed = -WALK_X_SPEED
             
         if keys[K_d] \
             and (self.abstraction_h == self.shadow_h or self.is_jumping):
-            self.horizontal_speed = PLAYER_MVMT_X_SPD
+            self.horizontal_speed = WALK_X_SPEED
 
         if keys[K_w] \
             and (self.abstraction_h == self.shadow_h or self.is_jumping):
-            self.depth_speed = -PLAYER_MVMT_Y_SPD
+            self.depth_speed = -WALK_Y_SPEED
 
         if keys[K_s] \
             and (self.abstraction_h == self.shadow_h or self.is_jumping):
-            self.depth_speed = PLAYER_MVMT_Y_SPD
+            self.depth_speed = WALK_Y_SPEED
 
         if keys[K_SPACE] and self.abstraction_h == self.shadow_h:
             self.is_jumping = True
-            self.vertical_speed = PLAYER_JUMP_SPD
+            self.vertical_speed = JUMP_SPEED
 
 
     def update_sprite_position(self):
