@@ -38,7 +38,7 @@ class Map():
     def __init__(self):
 
         # Init attributes
-        self.map_data = {}
+        self.map_data = []
         self.map_dimensions_height = 0
         self.map_dimensions_width = 0
         self.map_dimensions_depth = 0
@@ -47,18 +47,21 @@ class Map():
         self.player_start_h = 0
 
         # Read map file
+        temp_map_data = {}
         f = open(file_map)
         for block_idx, block_str in enumerate(f.read().split('\n\n')):
             [ block_label, *block_data ] = block_str.split('\n')
 
             if 'LAYER' in block_label:
+                layer_num = int(block_label.split(' ')[1])
+                self.map_dimensions_height = max(self.map_dimensions_height, layer_num + 1)
+
                 curr_layer = block_idx
-                self.map_data[curr_layer] = []
+                temp_map_data[curr_layer] = []
                 for row in block_data:
-                    self.map_data[curr_layer].append([c for c in row])
+                    temp_map_data[curr_layer].append([c for c in row])
                     self.map_dimensions_width = max(self.map_dimensions_width, len(row))
                 self.map_dimensions_depth = max(self.map_dimensions_depth, len(block_data))
-                self.map_dimensions_height += 1
             elif 'DATA' in block_label:
                 for line in block_data:
                     [ line_label, line_data ] = line.split(': ')
@@ -66,6 +69,11 @@ class Map():
                         case 'Player Start':
                             self.player_start_x, self.player_start_y, self.player_start_h = ( float(n) for n in line_data.split(', ') )
         f.close()
+        for layer in range(self.map_dimensions_height):
+            if layer in temp_map_data:
+                self.map_data.append(temp_map_data[layer])
+            else:
+                self.map_data.append([ [MAP_EMPTY] * self.map_dimensions_width for _ in range(self.map_dimensions_depth) ])
 
         # Init tiles
         self.cube = pg.image.load(file_cube).convert_alpha()
@@ -222,8 +230,8 @@ class Map():
         width = int(self.tile_width/BIRDS_EYE_SCALE_DOWN_MULT)
         height = int(self.tile_height/BIRDS_EYE_SCALE_DOWN_MULT)
 
-        for layer, key in enumerate(self.map_data.keys()):
-            for y, row in enumerate(self.map_data[key]):
+        for layer, _ in enumerate(self.map_data):
+            for y, row in enumerate(self.map_data[layer]):
                 for x, tile in enumerate(row):
                     if tile == MAP_EMPTY: continue
 

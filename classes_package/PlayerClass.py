@@ -127,7 +127,7 @@ class Player(pg.sprite.Sprite):
         # Constantly scan down from current position to update shadow dot elevation
         self.shadow_h = min(int(self.abstraction_h), globals.map.map_dimensions_height - 1)  # shadow cannot exceed highest map layer
 
-        while (self.shadow_h - 1) in globals.map.map_data \
+        while 0 <= (self.shadow_h - 1) < len(globals.map.map_data) \
             and point_collides_with_terrain(self.abstraction_x, self.abstraction_y, self.shadow_h, globals.map) == False:
             self.shadow_h -= 1
 
