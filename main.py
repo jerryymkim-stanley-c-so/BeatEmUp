@@ -1,4 +1,3 @@
-import math
 import pygame as pg
 from pygame.locals import *
 from sys import exit
@@ -7,8 +6,6 @@ pg.init()
 
 import globals
 from global_constants import *
-
-# Hello from here
 
 while True:
     for event in pg.event.get():
@@ -22,13 +19,11 @@ while True:
                 exit()
 
             # Debug Keys
-            elif event.key == K_UP: globals.map.curr_layer += 1
-            elif event.key == K_DOWN and globals.map.curr_layer > 0: globals.map.curr_layer -= 1
             elif event.key == K_p: globals.map.wait_on = not globals.map.wait_on
 
     screen.fill("black")
+    # globals.map.update()
     globals.map.blit_map()
-    # globals.map.blit_player_shadow()
     globals.map.draw_birds_eye_view()
 
     # globals.player.draw(screen)
