@@ -21,6 +21,9 @@ PROJECTION_GROUND_LEVEL_ORIGIN = 0, SCREEN_HEIGHT//2  # the place on the screen 
 PLAYER_WIDTH = 50
 PLAYER_HEIGHT = 100
 
+ENEMY_WIDTH = 50
+ENEMY_HEIGHT = 100
+
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pg.time.Clock()
 

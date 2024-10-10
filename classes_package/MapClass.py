@@ -4,6 +4,8 @@ from global_constants import *
 from .UsefulFunctions import *
 import globals
 
+import json
+
 PLAYER_SHADOW_WIDTH = 75
 PLAYER_SHADOW_HEIGHT = 30
 PLAYER_SHADOW_ALPHA = 100
@@ -62,12 +64,17 @@ class Map():
                     temp_map_data[curr_layer].append([c for c in row])
                     self.map_dimensions_width = max(self.map_dimensions_width, len(row))
                 self.map_dimensions_depth = max(self.map_dimensions_depth, len(block_data))
-            elif 'DATA' in block_label:
+            elif 'ENTITIES' in block_label:
                 for line in block_data:
-                    [ line_label, line_data ] = line.split(': ')
-                    match line_label:
-                        case 'Player Start':
-                            self.player_start_x, self.player_start_y, self.player_start_h = ( float(n) for n in line_data.split(', ') )
+                    data = json.loads(line)
+                    # print(data)
+                    match data['Entity']:
+                        case 'Player':
+                            self.player_start_x, self.player_start_y, self.player_start_h = data['x'], data['y'], data['h']
+                        case 'Enemy':
+                            # self.player_start_x, self.player_start_y, self.player_start_h = data['x'], data['y'], data['h']
+                            pass
+                        
         f.close()
         for layer in range(self.map_dimensions_height):
             if layer in temp_map_data:

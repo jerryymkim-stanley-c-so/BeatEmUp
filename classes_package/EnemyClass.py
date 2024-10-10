@@ -11,7 +11,7 @@ WALK_Y_SPEED = 3
 JUMP_SPEED = 16
 GRAVITY_RATE = -1
 
-class Player(pg.sprite.Sprite):
+class Enemy(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.dt = None
@@ -20,7 +20,7 @@ class Player(pg.sprite.Sprite):
         self.abstraction_y = 0
         self.abstraction_h = 0
 
-        self.image = pg.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.image = pg.Surface((ENEMY_WIDTH, ENEMY_HEIGHT))
         self.image.fill(color=(255,0,0))
         pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
         self.rect = self.image.get_frect(center=(0,0))
@@ -119,7 +119,7 @@ class Player(pg.sprite.Sprite):
         # The sprite is inherently tied to the projection, but the projection follows the abstraction.
         # So, the sprite should reposition itself based on the abstraction.
         self.rect.center = projection_coords_by_abstraction_coords(self.abstraction_x, self.abstraction_y, self.abstraction_h)
-        self.rect.y -= PLAYER_HEIGHT // 2
+        self.rect.y -= ENEMY_HEIGHT // 2
 
 
     def update_shadow(self):
