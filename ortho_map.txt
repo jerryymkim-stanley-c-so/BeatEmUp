@@ -90,4 +90,10 @@ LAYER 4
 
 ENTITIES
 { "Entity": "Player", "x": 7.5, "y": 1.5, "h": 1 }
-{ "Entity": "Enemy", "x": 9.25, "y": 2.25, "h": 1 }
+{ "Entity": "Enemy", "x": 23.25, "y": 4.5, "h": 1 }
+{ "Entity": "Enemy", "x": 24.75, "y": 0.75, "h": 4 }
+{ "Entity": "Enemy", "x": 27.25, "y": 5.5, "h": 0 }
+{ "Entity": "Enemy", "x": 7.75, "y": 5.5, "h": 0 }
+{ "Entity": "Enemy", "x": 5.25, "y": 5.5, "h": 0 }
+{ "Entity": "Enemy", "x": 2.25, "y": 3.75, "h": 0 }
+{ "Entity": "Enemy", "x": 21.75, "y": 0.75, "h": 0 }

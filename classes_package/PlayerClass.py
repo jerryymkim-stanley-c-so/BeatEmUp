@@ -21,7 +21,7 @@ class Player(pg.sprite.Sprite):
         self.abstraction_h = 0
 
         self.image = pg.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
-        self.image.fill(color=(255,0,0))
+        self.image.fill(color=(0,255,0))
         pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
         self.rect = self.image.get_frect(center=(0,0))
 
@@ -131,10 +131,7 @@ class Player(pg.sprite.Sprite):
             and point_collides_with_terrain(self.abstraction_x, self.abstraction_y, self.shadow_h, globals.map) == False:
             self.shadow_h -= 1
 
-        # Draw green dot at shadow
         self.shadow_projection = projection_coords_by_abstraction_coords(self.abstraction_x, self.abstraction_y, self.shadow_h)
-        # TODO: it doesn't seem ideal for most classes to be concerned with drawing to the screen. should something else be handling the drawing?
-        pg.draw.circle(screen, 'green', self.shadow_projection, 3)
 
     def update_dt(self):
         self.dt = globals.dt

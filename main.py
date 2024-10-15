@@ -22,14 +22,12 @@ while True:
             elif event.key == K_p: globals.map.wait_on = not globals.map.wait_on
 
     screen.fill("black")
-    # globals.map.update()
-    globals.map.blit_map()
-    globals.map.draw_birds_eye_view()
 
-    # globals.player.draw(screen)
-    globals.player.update()
-    globals.map.blit_fps()
-    globals.map.blit_debug()
+    # TODO: REMOVE THIS ???
+    for entity in globals.all_entities:
+        entity.update()
 
+    globals.camera.draw()
     pg.display.update()
+
     globals.dt = clock.tick(FPS) / 1000

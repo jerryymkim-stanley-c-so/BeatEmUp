@@ -12,13 +12,16 @@ JUMP_SPEED = 16
 GRAVITY_RATE = -1
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, enemy_data):
         super().__init__()
         self.dt = None
 
-        self.abstraction_x = 0
-        self.abstraction_y = 0
-        self.abstraction_h = 0
+        # self.abstraction_x = 0
+        # self.abstraction_y = 0
+        # self.abstraction_h = 0
+        self.abstraction_x = enemy_data['x']
+        self.abstraction_y = enemy_data['y']
+        self.abstraction_h = enemy_data['h']
 
         self.image = pg.Surface((ENEMY_WIDTH, ENEMY_HEIGHT))
         self.image.fill(color=(255,0,0))
@@ -32,12 +35,12 @@ class Enemy(pg.sprite.Sprite):
         self.shadow_h = 0
         self.shadow_projection = (0, 0)
 
-    def on_globals_loaded(self):
+    # def on_globals_loaded(self):
         
-        # Reposition the player at the start location
-        self.abstraction_x = globals.map.player_start_x
-        self.abstraction_y = globals.map.player_start_y
-        self.abstraction_h = globals.map.player_start_h
+    #     # Reposition the player at the start location
+    #     self.abstraction_x = globals.map.player_start_x
+    #     self.abstraction_y = globals.map.player_start_y
+    #     self.abstraction_h = globals.map.player_start_h
 
     def apply_x_movement(self):
         proposed_x = self.abstraction_x + self.horizontal_speed * self.dt
@@ -131,10 +134,7 @@ class Enemy(pg.sprite.Sprite):
             and point_collides_with_terrain(self.abstraction_x, self.abstraction_y, self.shadow_h, globals.map) == False:
             self.shadow_h -= 1
 
-        # Draw green dot at shadow
         self.shadow_projection = projection_coords_by_abstraction_coords(self.abstraction_x, self.abstraction_y, self.shadow_h)
-        # TODO: it doesn't seem ideal for most classes to be concerned with drawing to the screen. should something else be handling the drawing?
-        pg.draw.circle(screen, 'green', self.shadow_projection, 3)
 
     def update_dt(self):
         self.dt = globals.dt
@@ -150,5 +150,5 @@ class Enemy(pg.sprite.Sprite):
 
         self.update_sprite_position()
 
-        # Resolve inputs
-        self.resolve_input()
+        # # Resolve inputs
+        # self.resolve_input()
