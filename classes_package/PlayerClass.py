@@ -4,6 +4,7 @@ from pygame.locals import *
 import globals
 from global_constants import *
 from .UsefulFunctions import *
+from classes_package import Sprite
 
 
 WALK_X_SPEED = 5
@@ -11,19 +12,25 @@ WALK_Y_SPEED = 3
 JUMP_SPEED = 16
 GRAVITY_RATE = -1
 
-class Player(pg.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
+class Player(Sprite.Sprite):
+    # def __init__(self, pos, surf, groups):
+    def __init__(self, groups):
+
+        pos = (0, 0)
+        surf = pg.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
+        surf.fill(color=(0,255,0))
+
+        super().__init__(pos, surf, groups)
         self.dt = None
 
         self.abstraction_x = 0
         self.abstraction_y = 0
         self.abstraction_h = 0
 
-        self.image = pg.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
-        self.image.fill(color=(0,255,0))
-        pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
-        self.rect = self.image.get_frect(center=(0,0))
+        # self.image = pg.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
+        # self.image.fill(color=(0,255,0))
+        # pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
+        # self.rect = self.image.get_frect(center=(0,0))
 
         self.is_jumping = False
         self.vertical_speed = 0
@@ -120,6 +127,8 @@ class Player(pg.sprite.Sprite):
         # So, the sprite should reposition itself based on the abstraction.
         self.rect.center = projection_coords_by_abstraction_coords(self.abstraction_x, self.abstraction_y, self.abstraction_h)
         self.rect.y -= PLAYER_HEIGHT // 2
+
+        # print(self.rect.center)
 
 
     def update_shadow(self):

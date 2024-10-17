@@ -23,9 +23,8 @@ while True:
 
     screen.fill("black")
 
-    # TODO: REMOVE THIS ???
-    for entity in globals.all_entities:
-        entity.update()
+    for sprite in globals.all_sprites:
+        sprite.update()
 
     globals.camera.draw()
     pg.display.update()

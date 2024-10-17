@@ -20,7 +20,7 @@ class Map():
         self.player_start_y = 0
         self.player_start_h = 0
 
-        # TODO: REMOVE THIS
+        # TODO: SUPER TEMPORARY CODE
         self.enemy_locations = []
 
         # Read map file
@@ -31,8 +31,8 @@ class Map():
 
             if 'LAYER' in block_label:
                 layer_num = int(block_label.split(' ')[1])
-                # TODO: REMOVE?
-                if layer_num == 0: continue
+                # # TODO: REMOVE?
+                # if layer_num == 0: continue
                 self.map_dimensions_height = max(self.map_dimensions_height, layer_num + 1)
 
                 curr_layer = block_idx

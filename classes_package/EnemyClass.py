@@ -4,6 +4,7 @@ from pygame.locals import *
 import globals
 from global_constants import *
 from .UsefulFunctions import *
+from classes_package import Sprite
 
 
 WALK_X_SPEED = 5
@@ -11,9 +12,15 @@ WALK_Y_SPEED = 3
 JUMP_SPEED = 16
 GRAVITY_RATE = -1
 
-class Enemy(pg.sprite.Sprite):
-    def __init__(self, enemy_data):
-        super().__init__()
+class Enemy(Sprite.Sprite):
+    # def __init__(self, pos, surf, groups, enemy_data):
+    def __init__(self, groups, enemy_data):
+
+        pos = (0, 0)
+        surf = pg.Surface((ENEMY_WIDTH, ENEMY_HEIGHT))
+        surf.fill(color=(255,0,0))
+
+        super().__init__(pos, surf, groups)
         self.dt = None
 
         # self.abstraction_x = 0
@@ -23,10 +30,10 @@ class Enemy(pg.sprite.Sprite):
         self.abstraction_y = enemy_data['y']
         self.abstraction_h = enemy_data['h']
 
-        self.image = pg.Surface((ENEMY_WIDTH, ENEMY_HEIGHT))
-        self.image.fill(color=(255,0,0))
-        pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
-        self.rect = self.image.get_frect(center=(0,0))
+        # self.image = pg.Surface((ENEMY_WIDTH, ENEMY_HEIGHT))
+        # self.image.fill(color=(255,0,0))
+        # pg.draw.rect(self.image, (255,255,255), self.image.get_frect(topleft=(0,0)), 1)
+        # self.rect = self.image.get_frect(center=(0,0))
 
         self.is_jumping = False
         self.vertical_speed = 0
