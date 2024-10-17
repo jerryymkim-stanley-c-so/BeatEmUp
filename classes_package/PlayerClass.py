@@ -46,12 +46,38 @@ class Player(Sprite.Sprite):
         self.abstraction_y = globals.map.player_start_y
         self.abstraction_h = globals.map.player_start_h
 
+    # TODO: HIGHLY EXPERIMENTAL
+    def push_out_along_x_if_buffer(self):
+        # if self.abstraction_h == self.shadow_h:
+        if True:
+            buffer = PLAYER_WIDTH / 2 / PROJECTION_TILE_WIDTH_IN_PX
+
+            # Check right
+            if point_collides_with_terrain(self.abstraction_x + buffer, self.abstraction_y, self.abstraction_h + 1):
+                print('buffer collide right')
+                while point_collides_with_terrain(self.abstraction_x + buffer, self.abstraction_y, self.abstraction_h + 1):
+                    self.abstraction_x -= 0.1
+
+            # Check left
+            elif point_collides_with_terrain(self.abstraction_x - buffer, self.abstraction_y, self.abstraction_h + 1):
+                print('buffer collide left')
+                while point_collides_with_terrain(self.abstraction_x - buffer, self.abstraction_y, self.abstraction_h + 1):
+                    self.abstraction_x += 0.1
+
     def apply_x_movement(self):
         proposed_x = self.abstraction_x + self.horizontal_speed * self.dt
 
+        # # Buffer?
+        # proposed_x_with_buffer = proposed_x
+        # if self.horizontal_speed > 0:
+        #     proposed_x_with_buffer += PLAYER_WIDTH / 2 / PROJECTION_TILE_WIDTH_IN_PX
+        # elif self.horizontal_speed < 0:
+        #     proposed_x_with_buffer -= PLAYER_WIDTH / 2 / PROJECTION_TILE_WIDTH_IN_PX
+
         # NOTE: we check self.abstraction_h + 1 because the collision checking function CEILS the given h and checks the voxel BELOW it.
         # thus if we are standing at (on top of) some h, potential collision would be with a voxel that lives in layer (h + 1).
-        if point_collides_with_terrain(proposed_x, self.abstraction_y, math.floor(self.abstraction_h + 1), globals.map) == False:
+        if point_collides_with_terrain(proposed_x, self.abstraction_y, math.floor(self.abstraction_h + 1)) == False:
+        # if point_collides_with_terrain(proposed_x_with_buffer, self.abstraction_y, math.floor(self.abstraction_h + 1)) == False:
             self.abstraction_x = proposed_x
 
         self.horizontal_speed = 0
@@ -61,7 +87,7 @@ class Player(Sprite.Sprite):
 
         # NOTE: we check self.abstraction_h + 1 because the collision checking function CEILS the given h and checks the voxel BELOW it.
         # thus if we are standing at (on top of) some h, potential collision would be with a voxel that lives in layer (h + 1).
-        if point_collides_with_terrain(self.abstraction_x, proposed_y, math.floor(self.abstraction_h + 1), globals.map) == False:
+        if point_collides_with_terrain(self.abstraction_x, proposed_y, math.floor(self.abstraction_h + 1)) == False:
             self.abstraction_y = proposed_y
 
         self.depth_speed = 0
@@ -137,7 +163,7 @@ class Player(Sprite.Sprite):
         self.shadow_h = min(int(self.abstraction_h), globals.map.map_dimensions_height - 1)  # shadow cannot exceed highest map layer
 
         while 0 <= (self.shadow_h - 1) < len(globals.map.map_data) \
-            and point_collides_with_terrain(self.abstraction_x, self.abstraction_y, self.shadow_h, globals.map) == False:
+            and point_collides_with_terrain(self.abstraction_x, self.abstraction_y, self.shadow_h) == False:
             self.shadow_h -= 1
 
         self.shadow_projection = projection_coords_by_abstraction_coords(self.abstraction_x, self.abstraction_y, self.shadow_h)
@@ -150,6 +176,7 @@ class Player(Sprite.Sprite):
         self.update_shadow()
 
         # TODO: DOES THE ORDER OF AXIS RESOLUTION MATTER? COULD THERE BE ANY WEIRD EDGE CASES THAT LEAD TO STRANGE BEHAVIOR?
+        self.push_out_along_x_if_buffer()
         self.apply_x_movement()
         self.apply_y_movement()
         self.apply_h_movement()

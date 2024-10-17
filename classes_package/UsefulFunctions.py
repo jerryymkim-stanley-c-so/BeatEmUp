@@ -1,5 +1,6 @@
 import math
 
+import globals
 from global_constants import *
 
 def get_center(width:int, height:int) -> tuple:
@@ -66,12 +67,12 @@ def distance_between_points(p1, p2):
 def projection_coords_by_abstraction_coords(x, y, h):
     (ground_level_origin_x, ground_level_origin_y) = PROJECTION_GROUND_LEVEL_ORIGIN
 
-    x_relative_to_ground_level_origin = x * PROJECTION_TILE_X_OFFSET
-    y_relative_to_ground_level_origin = y * PROJECTION_TILE_Y_OFFSET - h * PROJECTION_TILE_Y_OFFSET
+    x_relative_to_ground_level_origin = x * PROJECTION_TILE_WIDTH_IN_PX
+    y_relative_to_ground_level_origin = y * PROJECTION_TILE_HEIGHT_IN_PX - h * PROJECTION_TILE_HEIGHT_IN_PX
 
     return (ground_level_origin_x + x_relative_to_ground_level_origin, ground_level_origin_y + y_relative_to_ground_level_origin)
 
-def point_collides_with_terrain(x, y, h, map):
+def point_collides_with_terrain(x, y, h):
 
     int_x = int(x)
     int_y = int(y)
@@ -84,33 +85,33 @@ def point_collides_with_terrain(x, y, h, map):
     # If it does, there is an unusual situation. I am leaving this in here for diagnostic purposes.
     # Code that calls this function should ordinarily check if the return value == True or False
 
-    if not 0 <= x < map.map_dimensions_width \
-        or not 0 <= y < map.map_dimensions_depth:
+    if not 0 <= x < globals.map.map_dimensions_width \
+        or not 0 <= y < globals.map.map_dimensions_depth:
         # print('NONE | x or y oob')
         return None
 
-    if not 0 <= ceil_h < map.map_dimensions_height:
+    if not 0 <= ceil_h < globals.map.map_dimensions_height:
         # you can be above the highest layer, or below layer 0 (pit) - in these cases you are NOT colliding
         return False
 
-    if map.map_data[ceil_h][int_y][int_x] == MAP_FLOOR:
+    if globals.map.map_data[ceil_h][int_y][int_x] == MAP_FLOOR:
         # print('TRUE | floor')
         return True
 
-    if map.map_data[ceil_h][int_y][int_x] == MAP_EMPTY:
+    if globals.map.map_data[ceil_h][int_y][int_x] == MAP_EMPTY:
         # print('FALSE | empty')
         return False
 
-    if map.map_data[ceil_h][int_y][int_x] == MAP_7:
+    if globals.map.map_data[ceil_h][int_y][int_x] == MAP_7:
         return x_frac <= 1 - y_frac
 
-    if map.map_data[ceil_h][int_y][int_x] == MAP_F:
+    if globals.map.map_data[ceil_h][int_y][int_x] == MAP_F:
         return y_frac <= x_frac
 
-    if map.map_data[ceil_h][int_y][int_x] == MAP_J:
+    if globals.map.map_data[ceil_h][int_y][int_x] == MAP_J:
         return y_frac >= x_frac
 
-    if map.map_data[ceil_h][int_y][int_x] == MAP_L:
+    if globals.map.map_data[ceil_h][int_y][int_x] == MAP_L:
         return x_frac >= 1 - y_frac
 
     print('NONE | default')

@@ -14,8 +14,8 @@ MAP_F = 'F'
 MAP_J = 'J'
 MAP_L = 'L'
 
-PROJECTION_TILE_X_OFFSET = 50  # tile size in px, basically
-PROJECTION_TILE_Y_OFFSET = 50  # tile size in px (actual floor portion only), basically
+PROJECTION_TILE_WIDTH_IN_PX = 50  # tile size in px, basically
+PROJECTION_TILE_HEIGHT_IN_PX = 50  # tile size in px (actual floor portion only), basically
 PROJECTION_GROUND_LEVEL_ORIGIN = 0, SCREEN_HEIGHT//2  # the place on the screen where the top left ground level should be. revisit this later. possibly name this something like 'HORIZON_TOP_LEFT'
 
 PLAYER_WIDTH = 50

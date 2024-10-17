@@ -127,8 +127,6 @@ class Camera():
             int_abstraction_y = int(sprite.abstraction_y)
             int_abstraction_h = int(sprite.abstraction_h)
             coord = (int_abstraction_y, int_abstraction_h)
-            if sprite == globals.player:
-                print(f'PLAYER | {coord}')
             if coord not in sprites_by_pos: sprites_by_pos[coord] = []
             sprites_by_pos[coord].append(sprite)
 
@@ -162,40 +160,50 @@ class Camera():
                         )
 
             # Then go height layer by layer, and for each height...
-            EXTRA_BUFFER_FOR_JUMPING_FROM_HIGHEST_LEVEL = 2
-            for h in range(globals.map.map_dimensions_height + EXTRA_BUFFER_FOR_JUMPING_FROM_HIGHEST_LEVEL):
+            for h in range(globals.map.map_dimensions_height):
                 y, layer = d, h
 
                 # ...Draw remaining tile types first
-                if h < globals.map.map_dimensions_height:
-                    for w in range(globals.map.map_dimensions_width):
-                        x = w
-                        tile = globals.map.map_data[layer][y][x]
+                for w in range(globals.map.map_dimensions_width):
+                    x = w
+                    tile = globals.map.map_data[layer][y][x]
 
-                        if tile not in (MAP_EMPTY, '1', '7', 'F'):
+                    if tile not in (MAP_EMPTY, '1', '7', 'F'):
 
-                            tile_type = TILE_TYPES[tile]
+                        tile_type = TILE_TYPES[tile]
 
-                            # Highlight the tile the player is on
-                            screen.blit(
-                                self.highlighted_tiles[tile_type]   if self.show_highlight \
-                                                                        and globals.player.abstraction_h == globals.player.shadow_h \
-                                                                        and x == int(globals.player.abstraction_x) \
-                                                                        and y == int(globals.player.abstraction_y) \
-                                                                        and layer == int(globals.player.abstraction_h) \
-                                                                    else self.tiles_by_layer[layer][tile_type],
-                                self.cube.get_frect(topleft=projection_coords_by_abstraction_coords(x, y, layer))
-                            )
+                        # Highlight the tile the player is on
+                        screen.blit(
+                            self.highlighted_tiles[tile_type]   if self.show_highlight \
+                                                                    and globals.player.abstraction_h == globals.player.shadow_h \
+                                                                    and x == int(globals.player.abstraction_x) \
+                                                                    and y == int(globals.player.abstraction_y) \
+                                                                    and layer == int(globals.player.abstraction_h) \
+                                                                else self.tiles_by_layer[layer][tile_type],
+                            self.cube.get_frect(topleft=projection_coords_by_abstraction_coords(x, y, layer))
+                        )
 
                 # ...Then draw sprites at current depth slice and height layer
-                if (y, layer) in sprites_by_pos:
-                    for sprite in sprites_by_pos[(y, layer)]:
+                coord = (y, layer)
+                if coord in sprites_by_pos:
+                    for sprite in sprites_by_pos[coord]:
                         # TODO: SET DYNAMIC OFFSET
                         offset = pg.Vector2()
                         offset.x = 0
                         offset.y = 0
                         screen.blit(sprite.image, sprite.rect.topleft + offset)
                         if self.debug: pg.draw.circle(screen, 'green', sprite.shadow_projection, 3)
+                    del sprites_by_pos[coord]
+
+        # Draw remaining sprites (out of bounds of map)
+        for coord in sprites_by_pos.keys():
+            for sprite in sprites_by_pos[coord]:
+                # TODO: SET DYNAMIC OFFSET
+                offset = pg.Vector2()
+                offset.x = 0
+                offset.y = 0
+                screen.blit(sprite.image, sprite.rect.topleft + offset)
+                if self.debug: pg.draw.circle(screen, 'green', sprite.shadow_projection, 3)
 
 
     def draw_abstraction_minimap(self):
@@ -252,7 +260,7 @@ class Camera():
 
         # Draw the Player's width
         player_location = (x_offset*width + ABSTRACTION_MINIMAP_STARTING_POS[0], y_offset*height + ABSTRACTION_MINIMAP_STARTING_POS[1])
-        line_length = PLAYER_WIDTH / PROJECTION_TILE_X_OFFSET * width
+        line_length = PLAYER_WIDTH / PROJECTION_TILE_WIDTH_IN_PX * width
         left_point = (player_location[0] - line_length/2, player_location[1])
         right_point = (player_location[0] + line_length/2, player_location[1])
         pg.draw.line(screen, 'red', left_point, right_point, 3)
